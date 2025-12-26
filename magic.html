@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Магический Шар 2025</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* =========================================
+           1. ГЛОБАЛЬНЫЙ СТИЛЬ И ФОН
+           ========================================= */
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0; padding: 0; width: 100%; min-height: 100vh;
+            background: radial-gradient(circle at 50% 40%, #202d3f 0%, #0a0e14 60%, #000000 100%);
+            background-attachment: fixed;
+            overflow: hidden; 
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative;
+        }
+
+        /* Фоновый снег */
+        .bg-snowflake {
+            position: fixed; top: -20px; color: rgba(255,255,255,0.3);
+            user-select: none; pointer-events: none; z-index: 0;
+            will-change: transform;
+        }
+        @keyframes bgFall { to { transform: translateY(110vh); } }
+
+        /* Кнопка НАЗАД */
+        .back-btn {
+            position: fixed; top: 20px; left: 20px;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
+            padding: 10px 20px; border-radius: 30px;
+            color: white; text-decoration: none; font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            z-index: 2000; transition: 0.3s;
+        }
+        .back-btn:hover { background: #fde047; color: #000; }
+
+        /* Заголовок */
+        h1 {
+            font-family: 'Pacifico', cursive; font-size: 2.8rem; color: #fde047;
+            text-shadow: 0 0 20px rgba(253, 224, 71, 0.5);
+            margin-bottom: 20px; z-index: 100; pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        body.focus-mode h1, body.focus-mode .people-selector, body.focus-mode .magic-btn {
+            opacity: 0.3; filter: blur(2px); pointer-events: none;
+        }
+
+        /* =========================================
+           2. ИНТРО ОВЕРЛЕЙ (ДЛЯ ПАШИ)
+           ========================================= */
+        .intro-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            z-index: 99999; justify-content: center; align-items: center;
+            cursor: pointer; transition: opacity 0.5s ease;
+        }
+        .intro-text {
+            font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 300; color: #ffffff;
+            opacity: 0; transform: translateY(20px); transition: all 0.5s ease;
+            text-align: center; padding: 20px;
+        }
+        .intro-text.visible { opacity: 1; transform: translateY(0); }
+
+        /* =========================================
+           3. ВЫБОР ПЕРСОНАЖА
+           ========================================= */
+        .people-selector {
+            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 30px; position: relative; z-index: 1000;
+            transition: opacity 0.3s;
+        }
+        .person-btn {
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #e2e8f0; padding: 14px 32px; font-size: 1.1rem;
+            border-radius: 50px; cursor: pointer;
+            font-family: 'Montserrat', sans-serif; font-weight: 600; 
+            transition: all 0.3s ease; backdrop-filter: blur(5px); letter-spacing: 0.5px;
+        }
+        .person-btn:hover, .person-btn.active { 
+            background: #fde047; color: #0f172a; border-color: #fde047;
+            box-shadow: 0 0 25px rgba(253, 224, 71, 0.4); transform: translateY(-3px);
+        }
+
+        /* =========================================
+           4. МАГИЧЕСКИЙ ШАР
+           ========================================= */
+        .globe-wrapper {
+            position: relative; width: 400px; height: 400px;
+            margin-bottom: 40px; z-index: 10;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .globe-wrapper.zoomed { transform: scale(1.15) translateY(-20px); z-index: 1500; }
+
+        .glass-ball {
+            width: 100%; height: 100%; border-radius: 50%;
+            position: relative; overflow: hidden;
+            background: radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 40%, rgba(0, 0, 0, 0.2) 80%, rgba(0, 0, 0, 0.6) 100%);
+            box-shadow: inset -20px -20px 60px rgba(0, 0, 0, 0.9), inset 10px 10px 40px rgba(255, 255, 255, 0.2), 0 0 60px rgba(100, 200, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(2px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;    
+        }
+        .glass-ball::before {
+            content: ''; position: absolute; top: 12%; left: 12%;
+            width: 25%; height: 15%; border-radius: 50%;
+            background: radial-gradient(ellipse at center, rgba(255,255,255,0.8) 0%, transparent 70%);
+            transform: rotate(-45deg); pointer-events: none; z-index: 50;
+        }
+
+        .tree-container {
+            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 1; pointer-events: none;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.9));
+            width: 200px; height: 250px;
+            display: flex; align-items: flex-end; justify-content: center;
+        }
+        .tree-container svg { width: 100%; height: 100%; overflow: visible; }
+
+        #snowCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+
+        .prediction-box {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 80%; text-align: center; z-index: 20; pointer-events: none;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        .prediction-text {
+            font-size: 2rem; 
+            color: #fde047; /* Золотой по умолчанию */
+            text-shadow: 0 4px 20px rgba(0,0,0,1), 0 0 15px #fde047;
+            font-weight: 800; opacity: 0; transform: scale(0.5);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-family: 'Pacifico', cursive; line-height: 1.4;
+        }
+
+        /* --- СТИЛЬ ДЛЯ ПАШИ (ХОЛОДНЫЙ, ЗАГАДОЧНЫЙ) --- */
+        .prediction-text.pasha-style {
+            color: #cbd5e1; /* Холодный серо-белый */
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.3); /* Слабое белое свечение */
+            font-style: italic;
+            font-weight: 500; /* Менее жирный */
+            font-family: 'Montserrat', sans-serif; /* Более строгий шрифт */
+        }
+
+        .prediction-text.show { opacity: 1; transform: scale(1); }
+
+        .globe-base {
+            position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
+            width: 250px; height: 40px;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0.6) 0%, transparent 70%);
+            z-index: 0; transition: transform 0.3s;
+        }
+        .globe-wrapper.zoomed + .globe-base { transform: translateX(-50%) scale(0.8); opacity: 0.5; }
+
+        .magic-btn {
+            background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+            color: #0f172a; border: none; padding: 24px 80px; font-size: 1.5rem; 
+            border-radius: 60px; cursor: pointer; font-weight: 800;
+            box-shadow: 0 10px 40px rgba(234, 179, 8, 0.4); 
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            z-index: 1000; margin-top: 30px; text-transform: uppercase; letter-spacing: 3px;
+            position: relative; overflow: hidden;
+        }
+        .magic-btn::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+        .magic-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 15px 50px rgba(234, 179, 8, 0.6); }
+        .magic-btn:hover::after { left: 100%; }
+        .magic-btn:active { transform: scale(0.98); }
+        .magic-btn:disabled { background: #475569; color: #94a3b8; box-shadow: none; cursor: not-allowed; transform: none; }
+
+        .shaking { animation: intense-shake 0.5s cubic-bezier(.36,.07,.19,.97) infinite; }
+        @keyframes intense-shake {
+            0% { transform: scale(1.15) translateY(-20px) translate3d(0, 0, 0) rotate3d(0, 0, 1, 0deg); }
+            10% { transform: scale(1.15) translateY(-20px) translate3d(-8px, 0, 0) rotate3d(0, 0, 1, -3deg); }
+            20% { transform: scale(1.15) translateY(-20px) translate3d(8px, 0, 0) rotate3d(0, 0, 1, 3deg); }
+            30% { transform: scale(1.15) translateY(-20px) translate3d(-10px, 0, 0) rotate3d(0, 0, 1, -5deg); }
+            40% { transform: scale(1.15) translateY(-20px) translate3d(10px, 0, 0) rotate3d(0, 0, 1, 5deg); }
+            50% { transform: scale(1.15) translateY(-20px) translate3d(-8px, 0, 0) rotate3d(0, 0, 1, -3deg); }
+            60% { transform: scale(1.15) translateY(-20px) translate3d(8px, 0, 0) rotate3d(0, 0, 1, 3deg); }
+            70% { transform: scale(1.15) translateY(-20px) translate3d(-5px, 0, 0) rotate3d(0, 0, 1, -2deg); }
+            80% { transform: scale(1.15) translateY(-20px) translate3d(5px, 0, 0) rotate3d(0, 0, 1, 2deg); }
+            90% { transform: scale(1.15) translateY(-20px) translate3d(-2px, 0, 0) rotate3d(0, 0, 1, -1deg); }
+            100% { transform: scale(1.15) translateY(-20px) translate3d(0, 0, 0) rotate3d(0, 0, 1, 0deg); }
+        }
+
+        /* =========================================
+           5. МУЗЫКАЛЬНЫЙ ВИДЖЕТ
+           ========================================= */
+        .music-widget-container {
+            position: fixed; top: 30px; right: 30px; width: 430px;
+            z-index: 9999; font-family: 'Montserrat', sans-serif; user-select: none; cursor: grab; 
+        }
+        .music-widget-container:active { cursor: grabbing; }
+
+        .player-panel {
+            display: flex; flex-direction: column; gap: 15px; padding: 20px 25px;
+            background: rgba(20, 30, 50, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .player-panel.playing { border-color: rgba(253, 224, 71, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(253, 224, 71, 0.1); }
+        
+        button, input[type="range"], .playlist-item { cursor: pointer !important; }
+        
+        .top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: none; }
+        .track-info, .controls-group { pointer-events: auto; }
+        .track-info { display: flex; flex-direction: column; max-width: 55%; }
+        .track-title { font-size: 1.1rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .track-artist { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+        .controls-group { display: flex; align-items: center; gap: 15px; }
+        .ctrl-btn { background: none; border: none; padding: 5px; color: #cbd5e1; cursor: pointer; font-size: 1.4rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .ctrl-btn:hover { color: #fde047; transform: scale(1.2); }
+        .play-btn { font-size: 2rem; color: #fff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        .list-btn { font-size: 1.2rem; margin-left: 10px; opacity: 0.7; }
+        .progress-row, .volume-row { width: 100%; display: flex; align-items: center; }
+        .volume-row { gap: 15px; margin-top: 5px; }
+        .vol-icon { font-size: 1rem; color: #94a3b8; width: 20px; text-align: center; }
+
+        /* Ползунки с улучшенным Hitbox и фиксом appearance */
+        input[type=range] {
+            appearance: none; -webkit-appearance: none;
+            width: 100%; height: 20px;
+            background: transparent; cursor: pointer; margin: 5px 0; position: relative; z-index: 20;
+        }
+        input[type=range]:focus { outline: none; }
+        input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255, 255, 255, 0.15); border-radius: 2px; transition: background 0.3s; }
+        input[type=range]:hover::-webkit-slider-runnable-track { background: rgba(255, 255, 255, 0.3); }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #fde047; cursor: pointer; margin-top: -5px; box-shadow: 0 0 10px rgba(253, 224, 71, 0.5); transition: transform 0.2s, background 0.2s; }
+        input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); background: #fff; }
+        input[type=range]::-moz-range-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+        input[type=range]::-moz-range-thumb { height: 14px; width: 14px; border: none; border-radius: 50%; background: #fde047; cursor: pointer; box-shadow: 0 0 10px rgba(253, 224, 71, 0.5); }
+
+        .playlist-drawer { margin-top: 10px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 5px; max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; }
+        .playlist-drawer.open { max-height: 300px; opacity: 1; overflow-y: auto; }
+        .playlist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 12px; cursor: pointer; color: #cbd5e1; font-size: 0.9rem; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .playlist-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .playlist-item.active { background: rgba(253, 224, 71, 0.15); color: #fde047; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div id="pashaOverlay" class="intro-overlay">
+        <div id="pashaText" class="intro-text"></div>
+    </div>
+
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Назад</a>
+
+    <h1>Оракул 2025</h1>
+    
+    <div class="people-selector">
+        <button class="person-btn" onclick="selectPerson('arthur')">Артур</button>
+        <button class="person-btn" onclick="selectPerson('yuna')">Юна</button>
+        <button class="person-btn" onclick="selectPerson('pasha')">Паша</button>
+    </div>
+
+    <div class="globe-wrapper" id="globeWrapper">
+        <div class="glass-ball" id="glassBall">
+            <div class="glass-shine"></div>
+            
+            <div class="prediction-box">
+                <div class="prediction-text" id="resultText"></div>
+            </div>
+
+            <canvas id="snowCanvas"></canvas>
+
+            <div class="tree-container">
+                <svg width="220" height="280" viewBox="0 0 200 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="starGrad" x1="100" y1="0" x2="100" y2="35" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#fff59d" /><stop offset="50%" stop-color="#fbc02d" /><stop offset="100%" stop-color="#f57f17" /></linearGradient>
+                        <linearGradient id="treeGrad" x1="100" y1="0" x2="100" y2="260" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#4ade80" /><stop offset="40%" stop-color="#16a34a" /><stop offset="100%" stop-color="#14532d" /></linearGradient>
+                        <radialGradient id="redBall" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="rotate(45)"><stop offset="0%" stop-color="#fca5a5" /><stop offset="40%" stop-color="#dc2626" /><stop offset="100%" stop-color="#7f1d1d" /></radialGradient>
+                        <radialGradient id="goldBall" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="rotate(45)"><stop offset="0%" stop-color="#fef08a" /><stop offset="40%" stop-color="#eab308" /><stop offset="100%" stop-color="#854d0e" /></radialGradient>
+                        <filter id="shadowFilter" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="rgba(0,0,0,0.3)"/></filter>
+                    </defs>
+                    <path d="M90 230 H110 V255 C110 258 108 260 105 260 H95 C92 260 90 258 90 255 V230 Z" fill="#3f1d0b" />
+                    <g filter="url(#shadowFilter)">
+                        <path d="M40 230 L20 230 C15 230 15 225 18 222 L50 160 H150 L182 222 C185 225 185 230 180 230 L160 230 L100 240 L40 230 Z" fill="url(#treeGrad)" />
+                        <path d="M55 165 L35 165 C30 165 30 160 33 157 L65 100 H135 L167 157 C170 160 170 165 165 165 L145 165 L100 175 L55 165 Z" fill="url(#treeGrad)" />
+                        <path d="M70 105 L55 105 C50 105 50 100 53 97 L100 25 L147 97 C150 100 150 105 145 105 L130 105 L100 115 L70 105 Z" fill="url(#treeGrad)" />
+                    </g>
+                    <circle cx="60" cy="200" r="8" fill="url(#redBall)" /><circle cx="140" cy="200" r="8" fill="url(#goldBall)" /><circle cx="100" cy="190" r="6" fill="url(#redBall)" /><circle cx="80" cy="140" r="7" fill="url(#goldBall)" /><circle cx="120" cy="140" r="7" fill="url(#redBall)" /><circle cx="100" cy="80" r="6" fill="url(#goldBall)" />
+                    <path d="M100 5 L108 25 H128 L112 38 L118 58 L100 48 L82 58 L88 38 L72 25 H92 Z" fill="url(#starGrad)" filter="drop-shadow(0 0 10px #fde047)" />
+                </svg>
+            </div>
+        </div>
+        <div class="globe-base"></div>
+    </div>
+
+    <button class="magic-btn" id="predictBtn" onclick="makePrediction()" disabled>Узнать судьбу</button>
+
+    <div class="music-widget-container" id="draggableWidget">
+        <div class="player-panel" id="playerPanel">
+            <div class="top-row">
+                <div class="track-info">
+                    <div class="track-title" id="trackTitle">Загрузка...</div>
+                    <div class="track-artist" id="trackArtist">...</div>
+                </div>
+                <div class="controls-group">
+                    <button class="ctrl-btn" onclick="prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="ctrl-btn play-btn" onclick="togglePlay()" id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
+                    <button class="ctrl-btn" onclick="nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
+                    <button class="ctrl-btn list-btn" onclick="togglePlaylist()"><i class="fa-solid fa-list-ul"></i></button>
+                </div>
+            </div>
+            <div class="progress-row">
+                <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
+            </div>
+            <div class="volume-row">
+                <i class="fa-solid fa-volume-high vol-icon" id="volIcon"></i>
+                <input type="range" id="volumeSlider" value="0.5" min="0" max="1" step="0.05">
+            </div>
+        </div>
+        <div class="playlist-drawer" id="playlistDrawer"></div>
+        <audio id="audioPlayer"></audio>
+    </div>
+
+    <script>
+  // ==========================================
+    // 1. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ (STATE)
+    // ==========================================
+    
+    // Флаг интро Паши (Объявлен здесь, чтобы жить вечно, пока страница не перезагрузится)
+    let hasSeenPashaIntro = false; 
+
+    let currentPerson = null;
+    let isAnimating = false; // Блокировка интерфейса во время анимации
+    let stormMode = false;   // Флаг режима "Буря"
+
+    // Данные предсказаний
+    const predictions = {
+        arthur: ["В 2026 ты станешь легендой!", "Удача ждет тебя в марте.", "Меньше тильта, больше побед!", "Деньги придут неожиданно."],
+        yuna: ["Путешествие мечты сбудется!", "Ты будешь сиять ярче всех.", "Жди приятный сюрприз.", "Карьера пойдет в гору."],
+        vitya: ["Твой код будет идеальным.", "Грандиозный проект ждет тебя.", "Здоровье будет крепким.", "Ты найдешь то, что искал."],
+        squad: ["Наша дружба станет крепче!", "Лучшая тусовка года впереди.", "Мы покорим новые вершины.", "Смеха будет в 2 раза больше."],
+        // Паша (особый стиль)
+        pasha: ["Всё будет... ну, нормально...", "Я устал, но ты держись...", "Может повезет, а может нет...", "Главное — выспаться...", "Посмотрим...", "Не сейчас...", "Звезды говорят... ничего..."]
+    };
+
+    // Фразы для интро Паши
+    const pashaPhrases = ["Паша....?", "Ох....", "Паша правда пришел...?", "Ну ладно...."];
+    let pashaPhase = 0;
+
+    // Кэшируем DOM элементы
+    const overlay = document.getElementById('pashaOverlay');
+    const overlayText = document.getElementById('pashaText');
+    const btn = document.getElementById('predictBtn');
+    const globeWrapper = document.getElementById('globeWrapper');
+    const text = document.getElementById('resultText');
+    const body = document.body;
+
+    // ==========================================
+    // 2. ФОНОВЫЙ СНЕГ
+    // ==========================================
+    function createBgSnow() {
+        const flake = document.createElement('div');
+        flake.classList.add('bg-snowflake');
+        flake.innerHTML = '❄';
+        flake.style.left = Math.random() * 100 + 'vw';
+        flake.style.opacity = Math.random() * 0.5 + 0.1;
+        flake.style.fontSize = Math.random() * 15 + 10 + 'px';
+        const duration = Math.random() * 5 + 10;
+        flake.style.animation = `bgFall ${duration}s linear`;
+        document.body.appendChild(flake);
+        setTimeout(() => flake.remove(), duration * 1000);
+    }
+    setInterval(createBgSnow, 200);
+
+    // ==========================================
+    // 3. ЛОГИКА ВЫБОРА ПЕРСОНАЖА (ИСПРАВЛЕНО)
+    // ==========================================
+    function selectPerson(name) {
+        if (isAnimating) return; // Не даем переключать во время анимации
+        currentPerson = name;
+        
+        // Визуальное переключение кнопок
+        document.querySelectorAll('.person-btn').forEach(btn => btn.classList.remove('active'));
+        const btns = document.querySelectorAll('.person-btn');
+        for(let b of btns) {
+            if(b.getAttribute('onclick').includes(name)) b.classList.add('active');
+        }
+
+        // Сбрасываем старое предсказание
+        document.getElementById('resultText').classList.remove('show');
+
+        // ГЛАВНАЯ ПРОВЕРКА ДЛЯ ПАШИ
+        if (name === 'pasha') {
+            if (hasSeenPashaIntro === true) {
+                // Если УЖЕ видели -> Сразу включаем кнопку
+                console.log("Интро Паши пропущено (уже видели)");
+                btn.disabled = false;
+            } else {
+                // Если ЕЩЕ НЕ видели -> Запускаем интро
+                console.log("Запуск интро Паши");
+                startPashaIntro();
+                hasSeenPashaIntro = true; // Ставим галочку "просмотрено"
+            }
+        } else {
+            // Логика для всех остальных (Артур, Юна и т.д.)
+            btn.disabled = false;
+        }
+    }
+
+    // --- Логика Интро Паши ---
+    function startPashaIntro() {
+        pashaPhase = 0;
+        overlay.style.display = 'flex';
+        // Небольшая задержка перед первым текстом
+        setTimeout(() => showPashaText(pashaPhrases[0]), 100);
+        btn.disabled = true; // Блокируем кнопку гадания
+    }
+
+    function showPashaText(txt) {
+        overlayText.classList.remove('visible');
+        setTimeout(() => {
+            overlayText.innerText = txt;
+            overlayText.classList.add('visible');
+        }, 500);
+    }
+
+    // Обработчик клика по оверлею (сюжет)
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            pashaPhase++;
+            if (pashaPhase < pashaPhrases.length) {
+                showPashaText(pashaPhrases[pashaPhase]);
+            } else {
+                // Конец сюжета
+                overlay.style.opacity = '0';
+                setTimeout(() => {
+                    overlay.style.display = 'none';
+                    overlay.style.opacity = '1'; // Сброс прозрачности на будущее
+                    btn.disabled = false; // Разблокируем кнопку "Узнать судьбу"
+                }, 500);
+            }
+        });
+    }
+
+    // ==========================================
+    // 4. ЛОГИКА ГАДАНИЯ (АНИМАЦИЯ И ОТВЕТ)
+    // ==========================================
+    function makePrediction() {
+        if (!currentPerson || isAnimating) return;
+        isAnimating = true;
+        
+        btn.disabled = true;
+        text.classList.remove('show');
+        body.classList.add('focus-mode'); 
+        globeWrapper.classList.add('zoomed'); 
+
+        // 1. СТАРТ ТРЯСКИ (через 0.3с)
+        setTimeout(() => {
+            text.innerText = ""; // Очищаем старый текст физически
+            globeWrapper.classList.add('shaking'); 
+            stormMode = true; 
+        }, 300);
+
+        // 2. ОСТАНОВКА И РЕЗУЛЬТАТ (через 2.5с)
+        setTimeout(() => {
+            globeWrapper.classList.remove('shaking');
+            stormMode = false; 
+            
+            // Ветвление: ПАША vs ОСТАЛЬНЫЕ
+            if (currentPerson === 'pasha') {
+                // Стиль Паши
+                text.classList.add('pasha-style');
+                text.innerText = "...";
+                text.classList.add('show');
+
+                // Пауза перед ответом
+                setTimeout(() => {
+                    text.classList.remove('show');
+                    setTimeout(() => {
+                        const list = predictions['pasha'];
+                        const randomPhrase = list[Math.floor(Math.random() * list.length)];
+                        text.innerText = randomPhrase + "..."; 
+                        text.classList.add('show');
+                        endAnimation();
+                    }, 500);
+                }, 2000); 
+
+            } else {
+                // Стиль Обычный
+                text.classList.remove('pasha-style');
+                const list = predictions[currentPerson];
+                text.innerText = list[Math.floor(Math.random() * list.length)];
+                text.classList.add('show');
+                endAnimation();
+            }
+        }, 2500);
+    }
+
+    function endAnimation() {
+        // Возврат интерфейса (еще через 2.5с на чтение)
+        setTimeout(() => {
+            globeWrapper.classList.remove('zoomed');
+            body.classList.remove('focus-mode');
+            isAnimating = false;
+            btn.disabled = false;
+        }, 2500);
+    }
+
+    // ==========================================
+    // 5. ДВИЖОК СНЕГА В ШАРЕ (CANVAS)
+    // ==========================================
+    try {
+        const canvas = document.getElementById('snowCanvas');
+        const ctx = canvas.getContext('2d');
+        const GLOBE_SIZE = 400; 
+        const RADIUS = GLOBE_SIZE / 2;
+        canvas.width = GLOBE_SIZE; 
+        canvas.height = GLOBE_SIZE;
+        let particles = [];
+        
+        class Snowflake {
+            constructor() { this.reset(true); }
+            reset(initial = false) {
+                let valid = false; let safety = 0;
+                while (!valid && safety < 100) {
+                    this.x = Math.random() * GLOBE_SIZE;
+                    this.y = initial ? Math.random() * GLOBE_SIZE : -10;
+                    const dx = this.x - RADIUS; const dy = this.y - RADIUS;
+                    if (dx*dx + dy*dy < (RADIUS - 15) * (RADIUS - 15)) valid = true;
+                    safety++;
+                }
+                this.size = Math.random() * 3 + 1;
+                this.baseSpeed = Math.random() * 1.5 + 0.5;
+                this.vx = 0; this.vy = 0; this.angle = Math.random() * Math.PI * 2; this.opacity = Math.random() * 0.6 + 0.2;
+            }
+            update() {
+                if (stormMode) {
+                    this.vx += (Math.random() - 0.5) * 4; this.vy += (Math.random() - 0.5) * 4;
+                    const maxSpeed = 15;
+                    this.vx = Math.max(-maxSpeed, Math.min(maxSpeed, this.vx));
+                    this.vy = Math.max(-maxSpeed, Math.min(maxSpeed, this.vy));
+                    this.x += this.vx; this.y += this.vy;
+                    const dx = this.x - RADIUS; const dy = this.y - RADIUS;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist > RADIUS - 5) {
+                        this.vx *= -0.8; this.vy *= -0.8;
+                        const angle = Math.atan2(dy, dx);
+                        this.x = RADIUS + Math.cos(angle) * (RADIUS - 10);
+                        this.y = RADIUS + Math.sin(angle) * (RADIUS - 10);
+                    }
+                } else {
+                    this.vx *= 0.95; this.vy *= 0.95;
+                    if (this.vy < this.baseSpeed) this.vy += 0.1;
+                    this.x += Math.sin(this.angle) * 0.5 + this.vx; this.y += this.vy; this.angle += 0.05;
+                    const dx = this.x - RADIUS; const dy = this.y - RADIUS;
+                    if (Math.sqrt(dx*dx + dy*dy) > RADIUS - 5 || this.y > GLOBE_SIZE) { if (this.y > RADIUS) this.reset(false); }
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 255, 255, ${this.opacity})`;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill();
+            }
+        }
+        function initSnow() { particles = []; for (let i = 0; i < 300; i++) particles.push(new Snowflake()); }
+        function animate() {
+            ctx.clearRect(0, 0, GLOBE_SIZE, GLOBE_SIZE);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        initSnow(); animate();
+    } catch (e) { console.error("Snow Error:", e); }
+
+    // ==========================================
+    // 6. МУЗЫКАЛЬНЫЙ ВИДЖЕТ
+    // ==========================================
+    const playlist = [
+        { title: "Feet & Latex", artist: "AQUAKEY", src: "track1.mp3" },
+        { title: "Ток", artist: "Zhanulka", src: "track2.mp3" },
+        { title: "Лазить по стенам", artist: "Zhanulka", src: "track3.mp3" },
+        { title: "shalava", artist: "tuborosho", src: "track4.mp3" },
+        { title: "Не могу", artist: "tuborosho", src: "track5.mp3" },
+        { title: "Your love", artist: "9mice", src: "track6.mp3" },
+        { title: "are you happy", artist: "kai angel", src: "track7.mp3" },
+        { title: "сайт", artist: "Раковая Выхухоль", src: "track8.mp3" },
+        { title: "web 2.0", artist: "темный принц", src: "track9.mp3" },
+        { title: "get married", artist: "deathmarried", src: "track10.mp3" }
+    ];
+
+    const STORAGE_KEY = { INDEX: 'cosmic_track_index', TIME: 'cosmic_track_time', PLAYING: 'cosmic_is_playing', VOLUME: 'cosmic_volume', POS_X: 'cosmic_pos_x', POS_Y: 'cosmic_pos_y' };
+    
+    const widget = document.getElementById('draggableWidget'), audio = document.getElementById('audioPlayer'), playPauseBtn = document.getElementById('playPauseBtn'), titleEl = document.getElementById('trackTitle'), artistEl = document.getElementById('trackArtist'), playerPanel = document.getElementById('playerPanel'), progressBar = document.getElementById('progressBar'), volumeSlider = document.getElementById('volumeSlider'), playlistDrawer = document.getElementById('playlistDrawer');
+    let currentTrackIndex = 0, isPlaying = false, isDraggingProgress = false;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        renderPlaylist(); restoreState(); restorePosition(); initDragAndDrop();
+        audio.addEventListener('ended', nextTrack);
+        audio.addEventListener('timeupdate', () => {
+            if (!isDraggingProgress && audio.duration) {
+                progressBar.value = (audio.currentTime / audio.duration) * 100;
+                if(Math.floor(audio.currentTime)%2===0) saveState();
+            }
+        });
+        progressBar.addEventListener('input', () => isDraggingProgress=true);
+        progressBar.addEventListener('change', (e) => {
+            isDraggingProgress=false; if(audio.duration) { audio.currentTime = (audio.duration/100)*e.target.value; saveState(); }
+        });
+        volumeSlider.addEventListener('input', (e) => { audio.volume=e.target.value; updateVolIcon(audio.volume); localStorage.setItem(STORAGE_KEY.VOLUME, audio.volume); });
+    });
+
+    function initDragAndDrop() {
+        let isDragging=false, startX, startY, initialLeft, initialTop;
+        widget.addEventListener('mousedown', (e) => {
+            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.playlist-item')) return;
+            isDragging=true; startX=e.clientX; startY=e.clientY;
+            const rect=widget.getBoundingClientRect(); initialLeft=rect.left; initialTop=rect.top;
+            widget.style.right='auto'; widget.style.bottom='auto'; widget.style.left=initialLeft+'px'; widget.style.top=initialTop+'px';
+            document.body.style.cursor='grabbing';
+        });
+        document.addEventListener('mousemove', (e) => {
+            if(!isDragging) return; e.preventDefault();
+            widget.style.left=`${initialLeft + e.clientX - startX}px`; widget.style.top=`${initialTop + e.clientY - startY}px`;
+        });
+        document.addEventListener('mouseup', () => {
+            if(!isDragging) return; isDragging=false; document.body.style.cursor='default';
+            const rect=widget.getBoundingClientRect(); localStorage.setItem(STORAGE_KEY.POS_X, rect.left); localStorage.setItem(STORAGE_KEY.POS_Y, rect.top);
+        });
+    }
+    function restorePosition() { const x=localStorage.getItem(STORAGE_KEY.POS_X), y=localStorage.getItem(STORAGE_KEY.POS_Y); if(x&&y){ widget.style.left=x+'px'; widget.style.top=y+'px'; widget.style.right='auto'; } }
+
+    function restoreState() {
+        const idx=localStorage.getItem(STORAGE_KEY.INDEX), time=localStorage.getItem(STORAGE_KEY.TIME), vol=localStorage.getItem(STORAGE_KEY.VOLUME), play=localStorage.getItem(STORAGE_KEY.PLAYING)==='true';
+        if(idx!==null) currentTrackIndex=parseInt(idx); loadTrack(currentTrackIndex);
+        if(vol!==null) { audio.volume=parseFloat(vol); volumeSlider.value=audio.volume; updateVolIcon(audio.volume); }
+        if(time!==null) audio.currentTime=parseFloat(time);
+        if(play) playAudio(true);
+    }
+    function saveState() { localStorage.setItem(STORAGE_KEY.INDEX, currentTrackIndex); localStorage.setItem(STORAGE_KEY.TIME, audio.currentTime); }
+    function loadTrack(i) {
+        if(i<0||i>=playlist.length) i=0; const t=playlist[i]; titleEl.innerText=t.title; artistEl.innerText=t.artist;
+        if(audio.getAttribute('src')!==t.src) audio.src=t.src;
+        updatePlaylistUI();
+    }
+    function playAudio(auto=false) { audio.play().then(()=>{ isPlaying=true; updateUI(true); localStorage.setItem(STORAGE_KEY.PLAYING,'true'); }).catch(()=>{ if(auto){ isPlaying=false; updateUI(false); localStorage.setItem(STORAGE_KEY.PLAYING,'false'); } }); }
+    function pauseAudio() { audio.pause(); isPlaying=false; updateUI(false); localStorage.setItem(STORAGE_KEY.PLAYING,'false'); saveState(); }
+    function togglePlay() { isPlaying ? pauseAudio() : playAudio(); }
+    function nextTrack() { currentTrackIndex++; if(currentTrackIndex>=playlist.length)currentTrackIndex=0; loadTrack(currentTrackIndex); audio.currentTime=0; playAudio(); }
+    function prevTrack() { currentTrackIndex--; if(currentTrackIndex<0)currentTrackIndex=playlist.length-1; loadTrack(currentTrackIndex); audio.currentTime=0; playAudio(); }
+    function updateUI(p) { playPauseBtn.innerHTML=p?'<i class="fa-solid fa-pause"></i>':'<i class="fa-solid fa-play"></i>'; p?playerPanel.classList.add('playing'):playerPanel.classList.remove('playing'); }
+    function updateVolIcon(v) { const i=document.getElementById('volIcon'); i.className='fa-solid vol-icon '+(v>0.5?'fa-volume-high':v>0?'fa-volume-low':'fa-volume-xmark'); }
+    function renderPlaylist() { playlistDrawer.innerHTML=''; playlist.forEach((t,i)=>{ const d=document.createElement('div'); d.className='playlist-item'; d.innerHTML=`<span>${t.title}</span>`; d.onclick=()=>{ currentTrackIndex=i; loadTrack(i); playAudio(); }; playlistDrawer.appendChild(d); }); updatePlaylistUI(); }
+    function updatePlaylistUI() { document.querySelectorAll('.playlist-item').forEach((el,i)=>i===currentTrackIndex?el.classList.add('active'):el.classList.remove('active')); }
+    function togglePlaylist() { playlistDrawer.classList.toggle('open'); }
+    </script>
+</body>
+</html>

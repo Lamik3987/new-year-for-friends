@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Фото-архив</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- 1. ГЛОБАЛЬНЫЙ ФОН --- */
+        body {
+            margin: 0; padding: 0; min-height: 100vh;
+            background: radial-gradient(circle at 50% 40%, #202d3f 0%, #0a0e14 60%, #000000 100%);
+            background-attachment: fixed;
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* --- 2. СНЕГ --- */
+        .bg-snowflake {
+            position: fixed; top: -20px; color: rgba(255,255,255,0.4);
+            user-select: none; pointer-events: none; 
+            z-index: 1; will-change: transform;
+            text-shadow: 0 0 5px rgba(255,255,255,0.8);
+        }
+        @keyframes bgFall { to { transform: translateY(110vh) rotate(360deg); } }
+
+        /* Кнопка НАЗАД */
+        .back-btn {
+            position: fixed; top: 20px; left: 20px;
+            background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(5px);
+            padding: 10px 20px; border-radius: 30px;
+            color: white; text-decoration: none; font-weight: bold;
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            z-index: 100; transition: 0.3s;
+        }
+        .back-btn:hover { background: #fde047; color: #000; box-shadow: 0 0 15px #fde047; }
+
+        /* --- 3. КОНТЕЙНЕР --- */
+        .container {
+            max-width: 1200px; margin: 0 auto; padding: 100px 20px 50px; 
+            text-align: center;
+            position: relative; z-index: 10;
+        }
+
+        /* ЗАГОЛОВОК */
+        .header-wrapper { position: relative; display: inline-block; margin-bottom: 30px; }
+        
+        h1 {
+            font-family: 'Pacifico', cursive; font-size: 3.5rem; color: #fde047;
+            text-shadow: 0 0 25px rgba(253, 224, 71, 0.6); margin: 0;
+            position: relative; z-index: 2;
+        }
+
+        .header-decor {
+            position: absolute; top: -20px; font-size: 2rem; color: #e2e8f0;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.5));
+            animation: swing 3s ease-in-out infinite alternate;
+        }
+        .decor-left { left: -60px; transform: rotate(-15deg); }
+        .decor-right { right: -60px; transform: rotate(15deg); }
+        @keyframes swing { from { transform: rotate(-10deg); } to { transform: rotate(10deg); } }
+
+        /* ГИРЛЯНДА */
+        .garland-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 80px;
+            pointer-events: none; z-index: 5;
+            background-image: radial-gradient(circle, #fde047 2px, transparent 3px);
+            background-size: 60px 40px; background-position: center top; opacity: 0.6;
+        }
+        .garland-line::after {
+            content: ''; position: absolute; top: 10px; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle, #f87171 3px, transparent 4px);
+            background-size: 90px 60px; background-position: 30px 10px;
+            animation: twinkle 2s infinite alternate;
+        }
+        @keyframes twinkle { from { opacity: 0.5; } to { opacity: 1; filter: drop-shadow(0 0 5px red); } }
+
+        /* --- 4. УПРАВЛЕНИЕ ВИДОМ (VIEW TOGGLE) --- */
+        .view-controls {
+            display: flex; justify-content: center; gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .view-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #cbd5e1;
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .view-btn:hover { background: rgba(255, 255, 255, 0.2); color: white; }
+
+        .view-btn.active {
+            background: rgba(253, 224, 71, 0.2);
+            border-color: #fde047;
+            color: #fde047;
+            box-shadow: 0 0 15px rgba(253, 224, 71, 0.3);
+        }
+
+        /* --- 5. ГАЛЕРЕЯ (ОБЩИЕ СТИЛИ ЭЛЕМЕНТОВ) --- */
+        .gallery-container {
+            width: 100%;
+            transition: all 0.5s ease;
+        }
+
+        .gallery-item {
+            position: relative; 
+            border-radius: 15px;
+            cursor: pointer; 
+            /* Декор рамки */
+            border: 1px solid rgba(253, 224, 71, 0.3);
+            padding: 10px; 
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+        }
+        
+        .gallery-item img {
+            width: 100%; height: 100%; object-fit: cover;
+            border-radius: 10px; transition: transform 0.5s ease;
+            filter: brightness(0.95);
+        }
+
+        .gallery-item:hover { 
+            border-color: #fde047;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 20px rgba(253, 224, 71, 0.4); 
+            z-index: 20;
+        }
+        .gallery-item:hover img { transform: scale(1.05); filter: brightness(1.1); }
+
+        /* --- РЕЖИМ: СЕТКА (GRID) --- */
+        .view-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .view-grid .gallery-item {
+            aspect-ratio: 1 / 1; /* Квадратные */
+        }
+        .view-grid .gallery-item:hover { transform: translateY(-10px) scale(1.02); }
+
+        /* --- РЕЖИМ: ЛЕНТА (FEED) --- */
+        .view-feed {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 60px; /* Большой отступ между постами */
+        }
+        .view-feed .gallery-item {
+            width: 100%;
+            max-width: 800px; /* Ограничиваем ширину */
+            aspect-ratio: auto; /* Натуральный размер фото */
+        }
+        .view-feed .gallery-item:hover { transform: scale(1.02); } /* Небольшое увеличение */
+
+
+        /* --- 6. МОДАЛЬНОЕ ОКНО (ОБНОВЛЕННЫЕ АНИМАЦИИ) --- */
+        .modal {
+            /* Базовое состояние - скрыто, но готово к флексу */
+            display: none; 
+            position: fixed; z-index: 2000; 
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(2, 6, 23, 0); /* Начинаем с прозрачного фона */
+            backdrop-filter: blur(0px); /* Без блюра */
+            justify-content: center; align-items: center;
+            
+            /* Плавный переход для фона */
+            transition: background-color 0.4s ease, backdrop-filter 0.4s ease;
+        }
+
+        /* Активное состояние модалки (добавляется JS) */
+        .modal.active {
+            background-color: rgba(2, 6, 23, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            max-width: 90%; max-height: 85vh; 
+            border-radius: 10px;
+            border: 2px solid #fde047; 
+            box-shadow: 0 0 50px rgba(253, 224, 71, 0.3);
+            
+            /* Начальное состояние контента (Zoom Out) */
+            opacity: 0;
+            transform: scale(0.9);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Активное состояние контента */
+        .modal.active .modal-content {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .close {
+            position: absolute; top: 20px; right: 35px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; z-index: 2002;
+            opacity: 0; transition: opacity 0.3s 0.2s; /* Появляется с задержкой */
+        }
+        .modal.active .close { opacity: 1; }
+
+        .modal-prev, .modal-next {
+            cursor: pointer; position: absolute; top: 50%;
+            width: auto; padding: 20px; margin-top: -50px;
+            color: rgba(255,255,255,0.7); font-weight: bold; font-size: 50px;
+            user-select: none; z-index: 2001; transition: 0.3s;
+            opacity: 0; transition: opacity 0.3s 0.2s, transform 0.2s;
+        }
+        .modal.active .modal-prev, .modal.active .modal-next { opacity: 1; }
+        
+        .modal-next { right: 20px; } .modal-prev { left: 20px; }
+        .modal-prev:hover, .modal-next:hover { color: #fde047; transform: scale(1.2); }
+
+        @media (max-width: 600px) {
+            .modal-prev, .modal-next { font-size: 30px; padding: 10px; }
+            h1 { font-size: 2.5rem; }
+            .header-decor { display: none; }
+            .view-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        }
+
+        /* --- СТИЛИ ВИДЖЕТА ПЛЕЕРА --- */
+        .music-widget-container {
+            position: fixed;
+            top: 30px; 
+            right: 30px; 
+            width: 430px;
+            z-index: 9999;
+            font-family: 'Montserrat', sans-serif;
+            user-select: none;
+            cursor: grab; 
+        }
+        .music-widget-container:active { cursor: grabbing; }
+
+        .player-panel {
+            display: flex; flex-direction: column; gap: 15px; padding: 20px 25px;
+            background: rgba(20, 30, 50, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .player-panel.playing { border-color: rgba(253, 224, 71, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(253, 224, 71, 0.1); }
+        
+        button, .playlist-item { cursor: pointer !important; }
+        
+        .top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: none; }
+        .track-info, .controls-group { pointer-events: auto; }
+        .track-info { display: flex; flex-direction: column; max-width: 55%; }
+        .track-title { font-size: 1.1rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+        .track-artist { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
+        .controls-group { display: flex; align-items: center; gap: 15px; }
+        .ctrl-btn { background: none; border: none; padding: 5px; color: #cbd5e1; cursor: pointer; font-size: 1.4rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
+        .ctrl-btn:hover { color: #fde047; transform: scale(1.2); }
+        .play-btn { font-size: 2rem; color: #fff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        .list-btn { font-size: 1.2rem; margin-left: 10px; opacity: 0.7; }
+        .progress-row, .volume-row { width: 100%; display: flex; align-items: center; }
+        .volume-row { gap: 15px; margin-top: 5px; }
+        .vol-icon { font-size: 1rem; color: #94a3b8; width: 20px; text-align: center; }
+
+        /* --- ПОЛЗУНКИ (УЛУЧШЕННЫЙ UX) --- */
+        input[type=range] {
+            /* Сбрасываем стандартные стили */
+            -webkit-appearance: none; 
+            appearance: none;
+            
+            /* 1. УВЕЛИЧЕННЫЙ HITBOX (Область клика) */
+            width: 100%;
+            height: 20px; /* Высокая невидимая область для легкого захвата */
+            
+            background: transparent; /* Фон прозрачный */
+            cursor: pointer;
+            margin: 5px 0; /* Отступы, чтобы не задеть соседей */
+            position: relative;
+            z-index: 20; /* Поверх фона панели */
+        }
+        
+        input[type=range]:focus { outline: none; }
+
+        /* --- ТРЕК (ВИДИМАЯ ЛИНИЯ) --- */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px; /* Визуально тонкая линия */
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 2px;
+            transition: background 0.3s;
+            /* Выравнивание трека внутри высокого инпута происходит автоматически */
+        }
+        
+        input[type=range]:hover::-webkit-slider-runnable-track { 
+            background: rgba(255, 255, 255, 0.3); 
+        }
+
+        /* --- БЕГУНОК (THUMB) --- */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 14px; 
+            width: 14px;
+            border-radius: 50%;
+            background: #fde047;
+            cursor: pointer;
+            
+            /* ЦЕНТРОВКА БЕГУНКА ОТНОСИТЕЛЬНО ТРЕКА */
+            /* Формула: (ВысотаТрека / 2) - (ВысотаБегунка / 2) -> (4/2) - (14/2) = 2 - 7 = -5px */
+            margin-top: -5px; 
+            
+            box-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        /* Увеличение при наведении для обратной связи */
+        input[type=range]:hover::-webkit-slider-thumb { 
+            transform: scale(1.3); 
+            background: #fff;
+        }
+
+        /* --- СТИЛИ ДЛЯ FIREFOX (Кроссбраузерность) --- */
+        input[type=range]::-moz-range-track {
+            width: 100%; height: 4px; cursor: pointer;
+            background: rgba(255, 255, 255, 0.15); border-radius: 2px;
+        }
+        input[type=range]::-moz-range-thumb {
+            height: 14px; width: 14px; border: none; border-radius: 50%;
+            background: #fde047; cursor: pointer;
+            box-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
+        }
+
+        .playlist-drawer { margin-top: 10px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 5px; max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; }
+        .playlist-drawer.open { max-height: 300px; opacity: 1; overflow-y: auto; }
+        .playlist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 12px; cursor: pointer; color: #cbd5e1; font-size: 0.9rem; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .playlist-item:hover { background: rgba(255,255,255,0.1); color: white; }
+        .playlist-item.active { background: rgba(253, 224, 71, 0.15); color: #fde047; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const body = document.body;
+            function createBgSnow() {
+                const flake = document.createElement('div');
+                flake.classList.add('bg-snowflake');
+                const symbols = ['❄', '❅', '•'];
+                flake.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.opacity = Math.random() * 0.5 + 0.2;
+                flake.style.fontSize = Math.random() * 20 + 10 + 'px';
+                const duration = Math.random() * 5 + 10 + 's';
+                flake.style.animation = `bgFall ${duration} linear infinite`;
+                body.appendChild(flake);
+                setTimeout(() => { if(flake.parentNode) flake.remove(); }, 15000);
+            }
+            setInterval(createBgSnow, 200);
+        });
+    </script>
+
+    <a href="index.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Назад</a>
+    <div class="garland-line"></div>
+
+    <div class="container">
+        <div class="header-wrapper">
+            <i class="fa-solid fa-holly-berry header-decor decor-left"></i>
+            <h1>Праздничный Архив</h1>
+            <i class="fa-solid fa-gift header-decor decor-right"></i>
+        </div>
+
+        <div class="view-controls">
+            <button class="view-btn active" onclick="switchView('grid')">
+                <i class="fa-solid fa-border-all"></i> Сетка
+            </button>
+            <button class="view-btn" onclick="switchView('feed')">
+                <i class="fa-regular fa-square"></i> Лента
+            </button>
+        </div>
+        
+        <div id="galleryContainer" class="gallery-container view-grid">
+            <div class="gallery-item"><img src="photo1.jpg" alt="Photo 1"></div>
+            <div class="gallery-item"><img src="photo2.jpg" alt="Photo 2"></div>
+            <div class="gallery-item"><img src="photo3.jpg" alt="Photo 3"></div>
+            <div class="gallery-item"><img src="photo4.jpg" alt="Photo 4"></div>
+            <div class="gallery-item"><img src="photo5.jpg" alt="Photo 5"></div>
+            <div class="gallery-item"><img src="photo6.jpg" alt="Photo 6"></div>
+            <div class="gallery-item"><img src="photo7.jpg" alt="Photo 7"></div>
+            <div class="gallery-item"><img src="photo8.jpg" alt="Photo 8"></div>
+            <div class="gallery-item"><img src="photo9.jpg" alt="Photo 9"></div>
+            <div class="gallery-item"><img src="photo10.jpg" alt="Photo 10"></div>
+            <div class="gallery-item"><img src="photo11.jpg" alt="Photo 11"></div>
+            <div class="gallery-item"><img src="photo12.jpg" alt="Photo 12"></div>
+            <div class="gallery-item"><img src="photo13.jpg" alt="Photo 13"></div>
+            <div class="gallery-item"><img src="photo14.jpg" alt="Photo 14"></div>
+            <div class="gallery-item"><img src="photo15.jpg" alt="Photo 15"></div>
+            <div class="gallery-item"><img src="photo16.jpg" alt="Photo 16"></div>
+            <div class="gallery-item"><img src="photo17.jpg" alt="Photo 17"></div>
+            <div class="gallery-item"><img src="photo18.jpg" alt="Photo 18"></div>
+            <div class="gallery-item"><img src="photo19.jpg" alt="Photo 19"></div>
+            <div class="gallery-item"><img src="photo20.jpg" alt="Photo 20"></div>
+            <div class="gallery-item"><img src="photo21.jpg" alt="Photo 21"></div>
+            <div class="gallery-item"><img src="photo22.jpg" alt="Photo 22"></div>
+            <div class="gallery-item"><img src="photo23.jpg" alt="Photo 23"></div>
+            <div class="gallery-item"><img src="photo24.jpg" alt="Photo 24"></div>
+            <div class="gallery-item"><img src="photo25.jpg" alt="Photo 25"></div>
+            <div class="gallery-item"><img src="photo26.jpg" alt="Photo 26"></div>
+            <div class="gallery-item"><img src="photo27.jpg" alt="Photo 27"></div>
+            <div class="gallery-item"><img src="photo28.jpg" alt="Photo 28"></div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="modal">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <a class="modal-prev" onclick="changeImage(-1)">&#10094;</a>
+        <a class="modal-next" onclick="changeImage(1)">&#10095;</a>
+        <img class="modal-content" id="modalImg">
+    </div>
+
+    <div class="music-widget-container" id="draggableWidget">
+        <div class="player-panel" id="playerPanel">
+            <div class="top-row">
+                <div class="track-info">
+                    <div class="track-title" id="trackTitle">Загрузка...</div>
+                    <div class="track-artist" id="trackArtist">...</div>
+                </div>
+                <div class="controls-group">
+                    <button class="ctrl-btn" onclick="prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="ctrl-btn play-btn" onclick="togglePlay()" id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
+                    <button class="ctrl-btn" onclick="nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
+                    <button class="ctrl-btn list-btn" onclick="togglePlaylist()"><i class="fa-solid fa-list-ul"></i></button>
+                </div>
+            </div>
+            <div class="progress-row">
+                <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
+            </div>
+            <div class="volume-row">
+                <i class="fa-solid fa-volume-high vol-icon" id="volIcon"></i>
+                <input type="range" id="volumeSlider" value="0.5" min="0" max="1" step="0.05">
+            </div>
+        </div>
+        <div class="playlist-drawer" id="playlistDrawer"></div>
+        <audio id="audioPlayer"></audio>
+    </div>
+
+    <script>
+        // --- 1. ЛОГИКА ГАЛЕРЕИ (ИСПРАВЛЕНАЯ) ---
+        let currentIndex = 0;
+        const images = document.querySelectorAll('.gallery-item img');
+        const modal = document.getElementById('imageModal');
+        const modalImg = document.getElementById('modalImg');
+
+        // Открытие
+        images.forEach((img, index) => {
+            img.addEventListener('click', () => openModal(index));
+        });
+
+        function openModal(index) {
+            currentIndex = index;
+            modal.style.display = "flex";
+            setTimeout(() => {
+                modal.classList.add("active");
+                updateModalImage();
+            }, 10);
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeModal() {
+            modal.classList.remove("active");
+            setTimeout(() => {
+                modal.style.display = "none";
+                modalImg.src = "";
+            }, 400);
+            document.body.style.overflow = "auto";
+        }
+
+        function changeImage(n) {
+            modalImg.style.opacity = 0;
+            modalImg.style.transform = "scale(0.95)";
+            setTimeout(() => {
+                currentIndex += n;
+                if (currentIndex >= images.length) currentIndex = 0;
+                else if (currentIndex < 0) currentIndex = images.length - 1;
+                updateModalImage();
+            }, 200);
+        }
+
+        function updateModalImage() {
+            modalImg.style.opacity = 0;
+            modalImg.style.transform = "scale(0.95)";
+            const tempImg = new Image();
+            tempImg.src = images[currentIndex].src;
+            tempImg.onload = () => {
+                modalImg.src = tempImg.src;
+                modalImg.style.opacity = 1;
+                modalImg.style.transform = "scale(1)";
+            };
+        }
+
+        modal.addEventListener('click', (e) => { if(e.target === modal) closeModal(); });
+        document.addEventListener('keydown', (e) => {
+            if (modal.style.display === "flex") {
+                if (e.key === "ArrowLeft") changeImage(-1);
+                if (e.key === "ArrowRight") changeImage(1);
+                if (e.key === "Escape") closeModal();
+            }
+        });
+
+        // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ВИДА ---
+        function switchView(view) {
+            const container = document.getElementById('galleryContainer');
+            const btns = document.querySelectorAll('.view-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            btns.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(view)) btn.classList.add('active');
+            });
+
+            if (view === 'grid') {
+                container.classList.remove('view-feed');
+                container.classList.add('view-grid');
+            } else {
+                container.classList.remove('view-grid');
+                container.classList.add('view-feed');
+            }
+        }
+
+        // --- СКРИПТ ПЛЕЕРА ---
+        const playlist = [
+           { title: "Feet & Latex", artist: "AQUAKEY", src: "track1.mp3" },
+        { title: "Ток", artist: "Zhanulka", src: "track2.mp3" },
+        { title: "Лазить по стенам", artist: "Zhanulka", src: "track3.mp3" },
+        { title: "shalava", artist: "tuborosho", src: "track4.mp3" },
+        { title: "Не могу", artist: "tuborosho", src: "track5.mp3" },
+        { title: "Your love", artist: "9mice", src: "track6.mp3" },
+        { title: "are you happy", artist: "kai angel", src: "track7.mp3" },
+        { title: "сайт", artist: "Раковая Выхухоль", src: "track8.mp3" },
+        { title: "web 2.0", artist: "темный принц", src: "track9.mp3" },
+        { title: "get married", artist: "deathmarried", src: "track10.mp3" }
+        ];
+
+        const STORAGE_KEY = { INDEX: 'cosmic_track_index', TIME: 'cosmic_track_time', PLAYING: 'cosmic_is_playing', VOLUME: 'cosmic_volume', POS_X: 'cosmic_pos_x', POS_Y: 'cosmic_pos_y' };
+        
+        const widget = document.getElementById('draggableWidget'), audio = document.getElementById('audioPlayer'), playPauseBtn = document.getElementById('playPauseBtn'), titleEl = document.getElementById('trackTitle'), artistEl = document.getElementById('trackArtist'), playerPanel = document.getElementById('playerPanel'), progressBar = document.getElementById('progressBar'), volumeSlider = document.getElementById('volumeSlider'), playlistDrawer = document.getElementById('playlistDrawer');
+        let currentTrackIndex = 0, isPlaying = false, isDraggingProgress = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            renderPlaylist(); restoreState(); restorePosition(); initDragAndDrop();
+            audio.addEventListener('ended', nextTrack);
+            audio.addEventListener('timeupdate', () => {
+                if (!isDraggingProgress && audio.duration) {
+                    progressBar.value = (audio.currentTime / audio.duration) * 100;
+                    if(Math.floor(audio.currentTime)%2===0) saveState();
+                }
+            });
+            progressBar.addEventListener('input', () => isDraggingProgress=true);
+            progressBar.addEventListener('change', (e) => {
+                isDraggingProgress=false; if(audio.duration) { audio.currentTime = (audio.duration/100)*e.target.value; saveState(); }
+            });
+            volumeSlider.addEventListener('input', (e) => { audio.volume=e.target.value; updateVolIcon(audio.volume); localStorage.setItem(STORAGE_KEY.VOLUME, audio.volume); });
+        });
+
+        function initDragAndDrop() {
+            let isDragging=false, startX, startY, initialLeft, initialTop;
+            widget.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.playlist-item')) return;
+                isDragging=true; startX=e.clientX; startY=e.clientY;
+                const rect=widget.getBoundingClientRect(); initialLeft=rect.left; initialTop=rect.top;
+                widget.style.right='auto'; widget.style.bottom='auto'; widget.style.left=initialLeft+'px'; widget.style.top=initialTop+'px';
+                document.body.style.cursor='grabbing';
+            });
+            document.addEventListener('mousemove', (e) => {
+                if(!isDragging) return; e.preventDefault();
+                widget.style.left=`${initialLeft + e.clientX - startX}px`; widget.style.top=`${initialTop + e.clientY - startY}px`;
+            });
+            document.addEventListener('mouseup', () => {
+                if(!isDragging) return; isDragging=false; document.body.style.cursor='default';
+                const rect=widget.getBoundingClientRect(); localStorage.setItem(STORAGE_KEY.POS_X, rect.left); localStorage.setItem(STORAGE_KEY.POS_Y, rect.top);
+            });
+        }
+        function restorePosition() { const x=localStorage.getItem(STORAGE_KEY.POS_X), y=localStorage.getItem(STORAGE_KEY.POS_Y); if(x&&y){ widget.style.left=x+'px'; widget.style.top=y+'px'; widget.style.right='auto'; } }
+
+        function restoreState() {
+            const idx=localStorage.getItem(STORAGE_KEY.INDEX), time=localStorage.getItem(STORAGE_KEY.TIME), vol=localStorage.getItem(STORAGE_KEY.VOLUME), play=localStorage.getItem(STORAGE_KEY.PLAYING)==='true';
+            if(idx!==null) currentTrackIndex=parseInt(idx); loadTrack(currentTrackIndex);
+            if(vol!==null) { audio.volume=parseFloat(vol); volumeSlider.value=audio.volume; updateVolIcon(audio.volume); }
+            if(time!==null) audio.currentTime=parseFloat(time);
+            if(play) playAudio(true);
+        }
+        function saveState() { localStorage.setItem(STORAGE_KEY.INDEX, currentTrackIndex); localStorage.setItem(STORAGE_KEY.TIME, audio.currentTime); }
+        function loadTrack(i) {
+            if(i<0||i>=playlist.length) i=0; const t=playlist[i]; titleEl.innerText=t.title; artistEl.innerText=t.artist;
+            if(audio.getAttribute('src')!==t.src) audio.src=t.src;
+            updatePlaylistUI();
+        }
+        function playAudio(auto=false) { audio.play().then(()=>{ isPlaying=true; updateUI(true); localStorage.setItem(STORAGE_KEY.PLAYING,'true'); }).catch(()=>{ if(auto){ isPlaying=false; updateUI(false); localStorage.setItem(STORAGE_KEY.PLAYING,'false'); } }); }
+        function pauseAudio() { audio.pause(); isPlaying=false; updateUI(false); localStorage.setItem(STORAGE_KEY.PLAYING,'false'); saveState(); }
+        function togglePlay() { isPlaying ? pauseAudio() : playAudio(); }
+        function nextTrack() { currentTrackIndex++; if(currentTrackIndex>=playlist.length)currentTrackIndex=0; loadTrack(currentTrackIndex); audio.currentTime=0; playAudio(); }
+        function prevTrack() { currentTrackIndex--; if(currentTrackIndex<0)currentTrackIndex=playlist.length-1; loadTrack(currentTrackIndex); audio.currentTime=0; playAudio(); }
+        function updateUI(p) { playPauseBtn.innerHTML=p?'<i class="fa-solid fa-pause"></i>':'<i class="fa-solid fa-play"></i>'; p?playerPanel.classList.add('playing'):playerPanel.classList.remove('playing'); }
+        function updateVolIcon(v) { const i=document.getElementById('volIcon'); i.className='fa-solid vol-icon '+(v>0.5?'fa-volume-high':v>0?'fa-volume-low':'fa-volume-xmark'); }
+        function renderPlaylist() { playlistDrawer.innerHTML=''; playlist.forEach((t,i)=>{ const d=document.createElement('div'); d.className='playlist-item'; d.innerHTML=`<span>${t.title}</span>`; d.onclick=()=>{ currentTrackIndex=i; loadTrack(i); playAudio(); }; playlistDrawer.appendChild(d); }); updatePlaylistUI(); }
+        function updatePlaylistUI() { document.querySelectorAll('.playlist-item').forEach((el,i)=>i===currentTrackIndex?el.classList.add('active'):el.classList.remove('active')); }
+        function togglePlaylist() { playlistDrawer.classList.toggle('open'); }
+    </script>
+</body>
+</html>
