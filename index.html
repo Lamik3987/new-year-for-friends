@@ -9,503 +9,319 @@
 
     <style>
 
-    /* ========================================== */
-    /* WELCOME SPLASH SCREEN (CSS)         */
-    /* ========================================== */
+/* --- НОВЫЙ КОНТЕЙНЕР ВИЗУАЛИЗАТОРА --- */
+.visualizer-container {
+    margin: 30px 0 50px 0;
+    width: 90%;
+    max-width: 900px;
+    height: 140px; /* Компактная высота */
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     
-    /* 1. КОНТЕЙНЕР (Оверлей) */
-    .welcome-overlay {
-        position: fixed;
-        top: 0; left: 0; width: 100%; height: 100%;
-        z-index: 10000; /* Выше музыки (9999) и снега */
+    /* Оформление рамки и стекла */
+    border-radius: 20px;
+    border: 1px solid rgba(253, 224, 71, 0.3); /* Тонкое золото */
+    background: rgba(0, 0, 0, 0.3); /* Темная подложка */
+    backdrop-filter: blur(10px);     /* Размытие фона за стеклом */
+    -webkit-backdrop-filter: blur(10px);
+    
+    /* Свечение рамки */
+    box-shadow: 
+        0 0 15px rgba(253, 224, 71, 0.1),
+        inset 0 0 20px rgba(253, 224, 71, 0.05);
         
-        /* Глубокий, размытый фон */
+    overflow: hidden; /* Чтобы линия не вылезала за скругления */
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* Эффект при активности */
+.visualizer-container.active {
+    border-color: rgba(253, 224, 71, 0.6);
+    box-shadow: 
+        0 0 25px rgba(253, 224, 71, 0.2),
+        inset 0 0 30px rgba(253, 224, 71, 0.1);
+}
+
+#audioCanvas {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.visualizer-hint {
+    position: absolute;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.75rem;
+    color: #fde047;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.6;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    text-shadow: 0 0 10px rgba(253, 224, 71, 0.4);
+}
+
+.visualizer-container.active .visualizer-hint {
+    opacity: 0;
+}
+
+    /* ========================================== */
+    /* ГЛОБАЛЬНЫЕ СТИЛИ */
+    /* ========================================== */
+    html, body {
+        margin: 0; padding: 0; width: 100%; height: 100%;
+        overflow-x: hidden;
+        background: radial-gradient(circle at 50% 40%, #202d3f 0%, #0a0e14 60%, #000000 100%);
+        background-attachment: fixed;
+        color: #ffffff;
+        font-family: 'Montserrat', sans-serif;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        position: relative;
+    }
+
+    /* ========================================== */
+    /* WELCOME SPLASH SCREEN */
+    /* ========================================== */
+    .welcome-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        z-index: 10000;
         background: rgba(5, 8, 16, 0.9);
         backdrop-filter: blur(30px);
         -webkit-backdrop-filter: blur(30px);
-        
-        display: flex; /* Центровка */
-        justify-content: center;
-        align-items: center;
-        
-        /* Анимация появления */
-        opacity: 0;
-        visibility: hidden;
+        display: flex; justify-content: center; align-items: center;
+        opacity: 0; visibility: hidden;
         transition: opacity 0.8s ease, visibility 0.8s ease;
     }
-
-    /* Класс для показа (добавляется JS) */
-    .welcome-overlay.is-visible {
-        opacity: 1;
-        visibility: visible;
-    }
-
-    /* 2. СТЕКЛЯННАЯ КАРТОЧКА */
+    .welcome-overlay.is-visible { opacity: 1; visibility: visible; }
     .welcome-card {
-        max-width: 600px;
-        width: 90%;
-        padding: 40px 50px;
-        
-        /* Glassmorphism */
+        max-width: 600px; width: 90%; padding: 40px 50px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.15);
         border-radius: 30px;
-        box-shadow: 
-            0 20px 50px rgba(0, 0, 0, 0.5),
-            inset 0 0 30px rgba(255, 255, 255, 0.05);
-        
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(255, 255, 255, 0.05);
         text-align: center;
         transform: translateY(30px);
         transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
     }
-
-    .welcome-overlay.is-visible .welcome-card {
-        transform: translateY(0); /* Всплытие */
-    }
-
-    /* 3. ТИПОГРАФИКА */
+    .welcome-overlay.is-visible .welcome-card { transform: translateY(0); }
     .welcome-content h1 {
-        font-family: 'Pacifico', cursive;
-        font-size: 3rem;
-        margin-bottom: 25px;
-        
-        /* Золотой градиент */
+        font-family: 'Pacifico', cursive; font-size: 3rem; margin-bottom: 25px;
         background: linear-gradient(135deg, #fde047 0%, #d97706 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
         filter: drop-shadow(0 0 15px rgba(253, 224, 71, 0.3));
     }
-
-    .welcome-content p {
-        font-family: 'Montserrat', sans-serif;
-        font-size: 1.1rem;
-        line-height: 1.6;
-        color: #e2e8f0;
-        margin-bottom: 15px;
-    }
-
-    .welcome-content .signature {
-        font-style: italic;
-        opacity: 0.8;
-        margin-top: 30px;
-        margin-bottom: 40px;
-        font-size: 1rem;
-        color: #fde047;
-    }
-
-    /* 4. КНОПКА "ОТКРЫТЬ ПОДАРОК" */
+    .welcome-content p { font-size: 1.1rem; line-height: 1.6; color: #e2e8f0; margin-bottom: 15px; }
+    .welcome-content .signature { font-style: italic; opacity: 0.8; margin-top: 30px; margin-bottom: 40px; color: #fde047; }
     .welcome-btn {
-        background: linear-gradient(90deg, #fde047, #eab308);
-        border: none;
-        padding: 18px 50px;
-        border-radius: 50px;
-        
-        font-family: 'Montserrat', sans-serif;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: #1e293b;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        cursor: pointer;
-        
-        box-shadow: 0 10px 30px rgba(234, 179, 8, 0.3);
-        transition: all 0.3s ease;
-        position: relative;
-        overflow: hidden;
+        background: linear-gradient(90deg, #fde047, #eab308); border: none;
+        padding: 18px 50px; border-radius: 50px;
+        font-family: 'Montserrat', sans-serif; font-size: 1.1rem; font-weight: 700;
+        color: #1e293b; text-transform: uppercase; letter-spacing: 1px; cursor: pointer;
+        box-shadow: 0 10px 30px rgba(234, 179, 8, 0.3); transition: all 0.3s ease; position: relative; overflow: hidden;
     }
-
-    .welcome-btn:hover {
-        transform: translateY(-3px) scale(1.05);
-        box-shadow: 0 15px 40px rgba(234, 179, 8, 0.5);
-    }
-    
-    /* Блик на кнопке */
+    .welcome-btn:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 15px 40px rgba(234, 179, 8, 0.5); }
     .welcome-btn::after {
-        content: '';
-        position: absolute; top: 0; left: -100%;
-        width: 100%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-        transition: 0.5s;
+        content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); transition: 0.5s;
     }
     .welcome-btn:hover::after { left: 100%; }
 
-    /* Адаптив для телефонов */
-    @media (max-width: 600px) {
-        .welcome-content h1 { font-size: 2rem; }
-        .welcome-card { padding: 30px 20px; }
+    /* ========================================== */
+    /* ГЛАВНЫЙ КОНТЕНТ */
+    /* ========================================== */
+    .main-container {
+        text-align: center; padding: 20px;
+        position: relative; z-index: 10;
+        width: 100%; max-width: 1200px;
+        display: flex; flex-direction: column; align-items: center;
     }
 
-        /* --- ГЛОБАЛЬНЫЕ СТИЛИ (ОБНОВЛЕННЫЙ ФОН) --- */
-        html, body {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow-x: hidden;
-            
-            /* ТОТ САМЫЙ УТВЕРЖДЕННЫЙ ФОН */
-            background: radial-gradient(circle at 50% 40%, #202d3f 0%, #0a0e14 60%, #000000 100%);
-            background-attachment: fixed;
-            
-            color: #ffffff;
-            font-family: 'Montserrat', sans-serif;
-            
-            /* Центровка контента */
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            position: relative;
-        }
-
-        .main-container {
-            text-align: center; padding: 20px;
-            position: relative; z-index: 10; /* Поверх снега */
-            width: 100%; max-width: 1200px;
-        }
-
-        h1.title {
-            font-family: 'Pacifico', cursive; font-size: 4rem; color: #fde047;
-            text-shadow: 0 0 20px rgba(253, 224, 71, 0.6), 0 0 40px rgba(253, 224, 71, 0.3);
-            margin-bottom: 10px;
-            animation: floatTitle 3s ease-in-out infinite alternate;
-        }
-        @keyframes floatTitle { from { transform: translateY(0); } to { transform: translateY(-10px); } }
-
-        p.subtitle { font-size: 1.3rem; color: #cbd5e1; margin-bottom: 40px; }
-
-        /* ТАЙМЕР */
-        /* --- ТАЙМЕР (УВЕЛИЧЕННАЯ ВЕРСИЯ) --- */
-        #countdown {
-            display: inline-flex; 
-            gap: 30px; /* Больше расстояние между блоками цифр */
-            margin-bottom: 60px; /* Больше отступ снизу до меню */
-            
-            background: rgba(0, 0, 0, 0.4);
-            padding: 30px 60px; /* Увеличили "жирность" рамки */
-            border-radius: 30px;
-            
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(8px);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6); /* Тень мощнее */
-        }
-
-        .time-block { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center;
-        }
-
-        .time-block span {
-            font-family: 'Montserrat', sans-serif; 
-            font-size: 5rem; /* БЫЛО 2.5rem -> СТАЛО 5rem (Огромные цифры) */
-            font-weight: 800; /* Еще жирнее */
-            color: #fde047; 
-            text-shadow: 0 0 25px rgba(253, 224, 71, 0.6); 
-            line-height: 1;
-        }
-
-        .time-block small { 
-            font-size: 1.1rem; /* БЫЛО 0.7rem -> СТАЛО 1.1rem */
-            color: #cbd5e1; 
-            text-transform: uppercase; 
-            margin-top: 10px; 
-            letter-spacing: 2px; /* Растянули буквы для стиля */
-            font-weight: 600;
-        }
-        
-        /* Адаптив для телефонов (чтобы не порвало экран) */
-        @media (max-width: 600px) {
-            #countdown { gap: 10px; padding: 15px 20px; width: 90%; justify-content: center; }
-            .time-block span { font-size: 2.5rem; }
-            .time-block small { font-size: 0.6rem; }
-        }
-
-        /* 3D МЕНЮ */
-        .menu-grid {
-            display: flex; gap: 25px; flex-wrap: wrap; justify-content: center;
-            perspective: 1000px; /* Важно для 3D */
-        }
-
-        .menu-card {
-            background: rgba(255, 255, 255, 0.08); /* Чуть прозрачнее для нового фона */
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px; padding: 30px; width: 200px;
-            text-align: center; cursor: pointer; text-decoration: none; color: white;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            /* Наклон */
-            transform: rotateY(-5deg) rotateX(5deg); 
-            transform-style: preserve-3d;
-        }
-        
-        .menu-card:nth-child(even) { transform: rotateY(5deg) rotateX(5deg); }
-
-        .menu-card:hover {
-            transform: translateY(-15px) scale(1.1) rotateY(0deg) rotateX(0deg);
-            background: rgba(255, 255, 255, 0.2); 
-            border-color: #fde047;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(253, 224, 71, 0.2);
-            z-index: 20;
-        }
-
-        .menu-card i { font-size: 3.5rem; margin-bottom: 20px; color: #fde047; }
-        .menu-card h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
-
-        /* СНЕГ */
-        .snowflake {
-            position: fixed; top: -30px; color: #fff;
-            user-select: none; pointer-events: none;
-            z-index: 1; opacity: 0.7; will-change: transform;
-        }
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
-
-        /* Особая снежинка */
-        .special-snowflake {
-            position: fixed; top: -50px; color: #fde047; font-size: 35px !important;
-            user-select: none; pointer-events: auto; cursor: pointer;
-            z-index: 100; filter: drop-shadow(0 0 15px rgba(253, 224, 71, 0.8));
-            will-change: transform; transition: transform 0.2s;
-        }
-        .special-snowflake:hover { transform: scale(1.2); }
-
-        /* Эффекты */
-        .particle { position: fixed; width: 6px; height: 6px; background: #fde047; border-radius: 50%; pointer-events: none; z-index: 101; }
-        .floating-message { position: fixed; font-family: 'Pacifico', cursive; color: #fde047; font-size: 1.5rem; text-shadow: 0 0 10px rgba(253, 224, 71, 0.8); pointer-events: none; z-index: 200; animation: floatUpAndFade 2s ease-out forwards; white-space: nowrap; }
-        @keyframes floatUpAndFade { to { opacity: 0; transform: translate(-50%, -50%) translateY(-50px); } }
-
-/* --- 1. ГЛАВНЫЙ КОНТЕЙНЕР --- */
-    .music-widget-container {
-        position: fixed;
-        /* Дефолтная позиция (если нет сохраненной) */
-        top: 30px; 
-        right: 30px; 
-        
-        width: 430px;
-        z-index: 9999;
-        font-family: 'Montserrat', sans-serif;
-        user-select: none; /* Чтобы текст не выделялся при перетаскивании */
-        
-        /* Курсор перемещения для контейнера */
-        cursor: grab; 
+    h1.title {
+        font-family: 'Pacifico', cursive; font-size: 4rem; color: #fde047;
+        text-shadow: 0 0 20px rgba(253, 224, 71, 0.6), 0 0 40px rgba(253, 224, 71, 0.3);
+        margin-bottom: 10px;
+        animation: floatTitle 3s ease-in-out infinite alternate;
     }
-    
-    .music-widget-container:active {
-        cursor: grabbing;
-    }
+    @keyframes floatTitle { from { transform: translateY(0); } to { transform: translateY(-10px); } }
+    p.subtitle { font-size: 1.3rem; color: #cbd5e1; margin-bottom: 20px; }
 
-    /* --- 2. ПАНЕЛЬ ПЛЕЕРА (СТЕКЛО) --- */
-    .player-panel {
+    /* --- МАГИЧЕСКОЕ ЯДРО --- */
+    .magic-core-wrapper {
+        margin: 40px 0 60px 0;
         display: flex;
         flex-direction: column;
-        gap: 15px;
-        padding: 20px 25px;
-        
-        background: rgba(20, 30, 50, 0.85);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 25px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
-        transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Убрали transform из транзишн, чтобы не лагало при драге */
-    }
-
-    .player-panel.playing {
-        border-color: rgba(253, 224, 71, 0.5);
-        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(253, 224, 71, 0.1);
-    }
-
-    /* --- ЭЛЕМЕНТЫ УПРАВЛЕНИЯ (БЛОКИРОВКА ДРАГА) --- */
-    /* Важно: курсор должен показывать, что здесь нажимают, а не тащат */
-    button, input[type="range"], .playlist-item {
-        cursor: pointer !important; 
-    }
-    
-    /* --- ЭТАЖ 1: ИНФО И КНОПКИ --- */
-    .top-row {
-        display: flex;
-        justify-content: space-between;
         align-items: center;
-        width: 100%;
-        pointer-events: none; /* Пропускаем клики сквозь контейнер ряда */
+        justify-content: center;
+        position: relative;
     }
-    
-    /* Возвращаем клики элементам */
+
+    .magic-orb {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 30% 30%, #fffacd, #facc15, #b45309);
+        box-shadow: 
+            0 0 40px rgba(250, 204, 21, 0.4),
+            0 0 80px rgba(250, 204, 21, 0.2),
+            inset 0 0 20px rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        position: relative;
+        z-index: 20;
+        animation: orbFloat 4s ease-in-out infinite alternate, orbPulse 3s ease-in-out infinite;
+        transition: transform 0.2s;
+    }
+
+    .magic-orb:active { transform: scale(0.95); }
+
+    .orbit-ring {
+        position: absolute; top: 50%; left: 50%;
+        border: 1px solid rgba(253, 224, 71, 0.3);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+    .ring-1 { width: 180px; height: 180px; margin: -90px; animation: spin 10s linear infinite; }
+    .ring-2 { width: 220px; height: 220px; margin: -110px; animation: spin 15s linear infinite reverse; border-color: rgba(253, 224, 71, 0.15); }
+
+    .magic-hint {
+        margin-top: 25px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 0.9rem;
+        color: #94a3b8;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        opacity: 0.7;
+    }
+
+    @keyframes orbFloat { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+    @keyframes orbPulse { 0% { box-shadow: 0 0 40px rgba(250, 204, 21, 0.4); } 50% { box-shadow: 0 0 70px rgba(250, 204, 21, 0.7); } 100% { box-shadow: 0 0 40px rgba(250, 204, 21, 0.4); } }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* --- МЕНЮ --- */
+    .menu-grid {
+        display: flex; gap: 25px; flex-wrap: wrap; justify-content: center;
+        perspective: 1000px;
+    }
+    .menu-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 20px; padding: 30px; width: 200px;
+        text-align: center; cursor: pointer; text-decoration: none; color: white;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        transform: rotateY(-5deg) rotateX(5deg); transform-style: preserve-3d;
+    }
+    .menu-card:nth-child(even) { transform: rotateY(5deg) rotateX(5deg); }
+    .menu-card:hover {
+        transform: translateY(-15px) scale(1.1) rotateY(0deg) rotateX(0deg);
+        background: rgba(255, 255, 255, 0.2); border-color: #fde047;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(253, 224, 71, 0.2); z-index: 20;
+    }
+    .menu-card i { font-size: 3.5rem; margin-bottom: 20px; color: #fde047; }
+    .menu-card h3 { font-size: 1.2rem; font-weight: 700; margin: 0; }
+
+    /* --- СНЕГ И ЭФФЕКТЫ --- */
+    .snowflake { position: fixed; top: -30px; color: #fff; pointer-events: none; z-index: 1; opacity: 0.7; }
+    /* Стиль для золотой снежинки удален отсюда, так как задается динамически в JS */
+
+    /* --- МУЗЫКАЛЬНЫЙ ВИДЖЕТ --- */
+    .music-widget-container {
+        position: fixed; top: 30px; right: 30px; width: 430px; z-index: 9999;
+        font-family: 'Montserrat', sans-serif; user-select: none; cursor: grab;
+    }
+    .music-widget-container:active { cursor: grabbing; }
+    .player-panel {
+        display: flex; flex-direction: column; gap: 15px; padding: 20px 25px;
+        background: rgba(20, 30, 50, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 25px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .player-panel.playing { border-color: rgba(253, 224, 71, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(253, 224, 71, 0.1); }
+    button, input[type="range"], .playlist-item { cursor: pointer !important; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; width: 100%; pointer-events: none; }
     .track-info, .controls-group { pointer-events: auto; }
-
-    .track-info {
-        display: flex;
-        flex-direction: column;
-        max-width: 55%;
-    }
-
-    .track-title {
-        font-size: 1.1rem; font-weight: 700; color: #fff;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-        margin-bottom: 4px;
-        text-shadow: 0 0 10px rgba(255,255,255,0.2);
-    }
-
+    .track-info { display: flex; flex-direction: column; max-width: 55%; }
+    .track-title { font-size: 1.1rem; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
     .track-artist { font-size: 0.85rem; color: #94a3b8; font-weight: 500; }
-
     .controls-group { display: flex; align-items: center; gap: 15px; }
-
-    .ctrl-btn {
-        background: none; border: none; padding: 5px;
-        color: #cbd5e1; cursor: pointer; font-size: 1.4rem;
-        transition: 0.2s; display: flex; align-items: center; justify-content: center;
-    }
+    .ctrl-btn { background: none; border: none; padding: 5px; color: #cbd5e1; cursor: pointer; font-size: 1.4rem; transition: 0.2s; display: flex; align-items: center; justify-content: center; }
     .ctrl-btn:hover { color: #fde047; transform: scale(1.2); }
     .play-btn { font-size: 2rem; color: #fff; filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
     .list-btn { font-size: 1.2rem; margin-left: 10px; opacity: 0.7; }
-
-    /* --- ЭТАЖ 2 & 3 --- */
     .progress-row, .volume-row { width: 100%; display: flex; align-items: center; }
     .volume-row { gap: 15px; margin-top: 5px; }
     .vol-icon { font-size: 1rem; color: #94a3b8; width: 20px; text-align: center; }
-
-    /* --- ПОЛЗУНКИ --- */
-    /* --- ПОЛЗУНКИ (УЛУЧШЕННЫЙ UX) --- */
-        input[type=range] {
-            /* Сбрасываем стандартные стили */
-            -webkit-appearance: none; 
-            appearance: none;
-            
-            /* 1. УВЕЛИЧЕННЫЙ HITBOX (Область клика) */
-            width: 100%;
-            height: 20px; /* Высокая невидимая область для легкого захвата */
-            
-            background: transparent; /* Фон прозрачный */
-            cursor: pointer;
-            margin: 5px 0; /* Отступы, чтобы не задеть соседей */
-            position: relative;
-            z-index: 20; /* Поверх фона панели */
-        }
-        
-        input[type=range]:focus { outline: none; }
-
-        /* --- ТРЕК (ВИДИМАЯ ЛИНИЯ) --- */
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px; /* Визуально тонкая линия */
-            cursor: pointer;
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 2px;
-            transition: background 0.3s;
-            /* Выравнивание трека внутри высокого инпута происходит автоматически */
-        }
-        
-        input[type=range]:hover::-webkit-slider-runnable-track { 
-            background: rgba(255, 255, 255, 0.3); 
-        }
-
-        /* --- БЕГУНОК (THUMB) --- */
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 14px; 
-            width: 14px;
-            border-radius: 50%;
-            background: #fde047;
-            cursor: pointer;
-            
-            /* ЦЕНТРОВКА БЕГУНКА ОТНОСИТЕЛЬНО ТРЕКА */
-            /* Формула: (ВысотаТрека / 2) - (ВысотаБегунка / 2) -> (4/2) - (14/2) = 2 - 7 = -5px */
-            margin-top: -5px; 
-            
-            box-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
-            transition: transform 0.2s, background 0.2s;
-        }
-        
-        /* Увеличение при наведении для обратной связи */
-        input[type=range]:hover::-webkit-slider-thumb { 
-            transform: scale(1.3); 
-            background: #fff;
-        }
-
-        /* --- СТИЛИ ДЛЯ FIREFOX (Кроссбраузерность) --- */
-        input[type=range]::-moz-range-track {
-            width: 100%; height: 4px; cursor: pointer;
-            background: rgba(255, 255, 255, 0.15); border-radius: 2px;
-        }
-        input[type=range]::-moz-range-thumb {
-            height: 14px; width: 14px; border: none; border-radius: 50%;
-            background: #fde047; cursor: pointer;
-            box-shadow: 0 0 10px rgba(253, 224, 71, 0.5);
-        }
-
-    /* --- ПЛЕЙЛИСТ --- */
-    .playlist-drawer {
-        margin-top: 10px;
-        background: rgba(15, 23, 42, 0.95);
-        backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 20px;
-        padding: 5px;
-        max-height: 0; opacity: 0; overflow: hidden;
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        cursor: default; /* Не драгается */
-    }
+    input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 20px; background: transparent; cursor: pointer; margin: 5px 0; position: relative; z-index: 20; }
+    input[type=range]:focus { outline: none; }
+    input[type=range]::-webkit-slider-runnable-track { width: 100%; height: 4px; cursor: pointer; background: rgba(255, 255, 255, 0.15); border-radius: 2px; transition: background 0.3s; }
+    input[type=range]:hover::-webkit-slider-runnable-track { background: rgba(255, 255, 255, 0.3); }
+    input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; height: 14px; width: 14px; border-radius: 50%; background: #fde047; cursor: pointer; margin-top: -5px; box-shadow: 0 0 10px rgba(253, 224, 71, 0.5); transition: transform 0.2s, background 0.2s; }
+    input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.3); background: #fff; }
+    .playlist-drawer { margin-top: 10px; background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; padding: 5px; max-height: 0; opacity: 0; overflow: hidden; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); cursor: default; }
     .playlist-drawer.open { max-height: 300px; opacity: 1; overflow-y: auto; }
-    
-    .playlist-item {
-        display: flex; justify-content: space-between; align-items: center;
-        padding: 12px 15px; border-radius: 12px;
-        cursor: pointer; color: #cbd5e1; font-size: 0.9rem;
-        transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05);
-    }
+    .playlist-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-radius: 12px; cursor: pointer; color: #cbd5e1; font-size: 0.9rem; transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .playlist-item:hover { background: rgba(255,255,255,0.1); color: white; }
     .playlist-item.active { background: rgba(253, 224, 71, 0.15); color: #fde047; font-weight: 700; }
-</style>
-
-<div class="music-widget-container" id="draggableWidget">
     
-    <div class="player-panel" id="playerPanel">
-        <div class="top-row">
-            <div class="track-info">
-                <div class="track-title" id="trackTitle">Загрузка...</div>
-                <div class="track-artist" id="trackArtist">...</div>
-            </div>
-            <div class="controls-group">
-                <button class="ctrl-btn" onclick="prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
-                <button class="ctrl-btn play-btn" onclick="togglePlay()" id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
-                <button class="ctrl-btn" onclick="nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
-                <button class="ctrl-btn list-btn" onclick="togglePlaylist()"><i class="fa-solid fa-list-ul"></i></button>
-            </div>
-        </div>
-        <div class="progress-row">
-            <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
-        </div>
-        <div class="volume-row">
-            <i class="fa-solid fa-volume-high vol-icon" id="volIcon"></i>
-            <input type="range" id="volumeSlider" value="0.5" min="0" max="1" step="0.05">
-        </div>
-    </div>
-
-    <div class="playlist-drawer" id="playlistDrawer"></div>
-    <audio id="audioPlayer"></audio>
-</div>
-
-</div>
-</div>
-
+    /* АДАПТИВ */
+    @media (max-width: 600px) {
+        h1.title { font-size: 2.5rem; }
+        .welcome-content h1 { font-size: 2rem; }
+        .magic-orb { width: 100px; height: 100px; }
+        .ring-1 { width: 140px; height: 140px; margin: -70px; }
+        .ring-2 { width: 180px; height: 180px; margin: -90px; }
+    }
+    </style>
 </head>
 <body>
 
     <div id="welcomeOverlay" class="welcome-overlay">
-    <div class="welcome-card">
-        <div class="welcome-content">
-            <h1>Привет, мои хорошие! 🎄</h1>
-            <p>Я долго молчал, но пришло время признаться...</p>
-            <p>Я сделал для вас этот сайт в честь Нового Года. Это и есть тот самый подарок, про который я вам не говорил.</p>
-            <p class="signature">Надеюсь, вам понравится! ✨</p>
-            <button id="closeWelcomeBtn" class="welcome-btn">Открыть подарок</button>
+        <div class="welcome-card">
+            <div class="welcome-content">
+                <h1>Привет, друзья.🎄</h1>
+                <p>Я долго молчал, но пришло время признаться.</p>
+                <p>Я сделал для вас подарочный сайт в честь Нового Года.</p>
+                <p class="signature">Надеюсь, вам правда понравится.</p>
+                <button id="closeWelcomeBtn" class="welcome-btn">Открыть подарок</button>
+            </div>
         </div>
     </div>
-</div>
+
+    <div class="music-widget-container" id="draggableWidget">
+        <div class="player-panel" id="playerPanel">
+            <div class="top-row">
+                <div class="track-info">
+                    <div class="track-title" id="trackTitle">Загрузка...</div>
+                    <div class="track-artist" id="trackArtist">...</div>
+                </div>
+                <div class="controls-group">
+                    <button class="ctrl-btn" onclick="prevTrack()"><i class="fa-solid fa-backward-step"></i></button>
+                    <button class="ctrl-btn play-btn" onclick="togglePlay()" id="playPauseBtn"><i class="fa-solid fa-play"></i></button>
+                    <button class="ctrl-btn" onclick="nextTrack()"><i class="fa-solid fa-forward-step"></i></button>
+                    <button class="ctrl-btn list-btn" onclick="togglePlaylist()"><i class="fa-solid fa-list-ul"></i></button>
+                </div>
+            </div>
+            <div class="progress-row">
+                <input type="range" id="progressBar" value="0" min="0" max="100" step="0.1">
+            </div>
+            <div class="volume-row">
+                <i class="fa-solid fa-volume-high vol-icon" id="volIcon"></i>
+                <input type="range" id="volumeSlider" value="0.5" min="0" max="1" step="0.05">
+            </div>
+        </div>
+        <div class="playlist-drawer" id="playlistDrawer"></div>
+        <audio id="audioPlayer"></audio>
+    </div>
 
     <div class="main-container">
         <h1 class="title">С Новым Годом, Друзья!</h1>
         <p class="subtitle">Добро пожаловать в наш цифровой новогодний домик.</p>
 
-        <div id="countdown">
-            <div class="time-block"><span id="days">00</span><small>Дней</small></div>
-            <div class="time-block"><span id="hours">00</span><small>Часов</small></div>
-            <div class="time-block"><span id="minutes">00</span><small>Минут</small></div>
-            <div class="time-block"><span id="seconds">00</span><small>Секунд</small></div>
+        <div class="visualizer-container glass-core">
+            <canvas id="audioCanvas"></canvas>
+            <div class="visualizer-hint" id="visualizerHint">Нажми Play для магии</div>
         </div>
 
         <div class="menu-grid">
@@ -516,123 +332,43 @@
                 <i class="fa-solid fa-camera-retro"></i> <h3>Фото-архив</h3>
             </a>
             <a href="magic.html" class="menu-card">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> <h3>Оракул 2026</h3>
+                <i class="fa-solid fa-wand-magic-sparkles"></i> <h3>Шар с предсказаниями</h3>
             </a>
         </div>
     </div>
 
-    <script>
-
-        // ==========================================
-    //      WELCOME SPLASH SCREEN (LOGIC)
+<script>
     // ==========================================
-    document.addEventListener("DOMContentLoaded", () => {
-        const welcomeOverlay = document.getElementById('welcomeOverlay');
-        const closeBtn = document.getElementById('closeWelcomeBtn');
-        const storageKey = 'hasSeenNewYearWelcome_v1'; // Версионирование ключа полезно для тестов
-
-        // 1. ПРОВЕРКА ПРИ ЗАГРУЗКЕ
-        const hasSeen = localStorage.getItem(storageKey);
-
-        if (!hasSeen) {
-            // Если НЕ видел -> Показываем
-            // Небольшая задержка, чтобы стили успели прогрузиться и анимация сработала плавно
-            setTimeout(() => {
-                welcomeOverlay.classList.add('is-visible');
-                document.body.style.overflow = 'hidden'; // Блокируем скролл основной страницы
-            }, 100);
-        } else {
-            // Если ВИДЕЛ -> Удаляем из DOM сразу, чтобы не мешал
-            welcomeOverlay.remove();
+    // 1. АНИМАЦИИ И СТИЛИ
+    // ==========================================
+    const styleSheet = document.createElement("style");
+    styleSheet.textContent = `
+        @keyframes fallLinear { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes fallSwing {
+            0% { transform: translate(0, -10vh) rotate(0deg); }
+            25% { transform: translate(10px, 20vh) rotate(90deg); }
+            50% { transform: translate(-10px, 50vh) rotate(180deg); }
+            75% { transform: translate(10px, 80vh) rotate(270deg); }
+            100% { transform: translate(0, 110vh) rotate(360deg); }
         }
+    `;
+    document.head.appendChild(styleSheet);
 
-        // 2. ОБРАБОТКА НАЖАТИЯ
-        if (closeBtn) {
-            closeBtn.addEventListener('click', () => {
-                // Анимация исчезновения
-                welcomeOverlay.style.opacity = '0';
-                welcomeOverlay.style.pointerEvents = 'none'; // Чтобы нельзя было нажать пока исчезает
-                
-                // Возвращаем скролл
-                document.body.style.overflow = 'auto';
+    // ==========================================
+    // 2. ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+    // ==========================================
+    const STORAGE_KEY = { 
+        INDEX: 'cosmic_track_index', 
+        TIME: 'cosmic_track_time', 
+        PLAYING: 'cosmic_is_playing', 
+        VOLUME: 'cosmic_volume', 
+        POS_X: 'cosmic_pos_x', 
+        POS_Y: 'cosmic_pos_y',
+        SEEN_INTRO: 'hasSeenNewYearWelcome_v6' // Обновил версию
+    };
 
-                // Записываем в память
-                localStorage.setItem(storageKey, 'true');
-
-                // Удаляем из DOM после завершения анимации CSS (0.8s)
-                setTimeout(() => {
-                    welcomeOverlay.remove();
-                }, 800);
-            });
-        }
-    });
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const body = document.body;
-
-            // ТАЙМЕР
-            function updateCountdown() {
-                const targetDate = new Date("January 1, 2026 00:00:00").getTime();
-                const now = new Date().getTime();
-                const distance = targetDate - now;
-                if (distance < 0) { document.getElementById("countdown").innerHTML = "<h2 style='color:#fde047'>🎄 С НОВЫМ ГОДОМ! 🎄</h2>"; return; }
-                document.getElementById("days").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
-                document.getElementById("hours").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
-                document.getElementById("minutes").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
-                document.getElementById("seconds").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
-            }
-            setInterval(updateCountdown, 1000); updateCountdown();
-
-            // СНЕГ (Простой и надежный)
-            const secretMessages = ["С Новым Годом! ✨", "Вы лучшие! ❤️", "Ура! Поймал!", "Счастья! 🎄", "Обнимаю! 🤗"];
-            
-            function createFloatingText(x, y) {
-                const textEl = document.createElement('div');
-                textEl.classList.add('floating-message');
-                textEl.innerText = secretMessages[Math.floor(Math.random() * secretMessages.length)];
-                textEl.style.left = x + 'px'; textEl.style.top = y + 'px';
-                body.appendChild(textEl); setTimeout(() => textEl.remove(), 2000);
-            }
-
-            function createExplosion(x, y) {
-                for (let i = 0; i < 15; i++) {
-                    const p = document.createElement('div');
-                    p.classList.add('particle'); body.appendChild(p);
-                    p.style.left = x + 'px'; p.style.top = y + 'px';
-                    const dx = x + (Math.random() - 0.5) * 200;
-                    const dy = y + (Math.random() - 0.5) * 200;
-                    p.animate([{transform:`translate(0,0)`, opacity:1}, {transform:`translate(${dx-x}px, ${dy-y}px)`, opacity:0}], {duration: 1000, easing: 'ease-out'});
-                    setTimeout(()=>p.remove(), 1000);
-                }
-            }
-
-            function createSnowflake() {
-                const snowflake = document.createElement('div');
-                const isSpecial = Math.random() < 0.05;
-                if (isSpecial) {
-                    snowflake.classList.add('special-snowflake'); snowflake.innerHTML = '★';
-                    snowflake.addEventListener('click', (e) => {
-                        const rect = snowflake.getBoundingClientRect();
-                        createExplosion(rect.left, rect.top); createFloatingText(rect.left, rect.top);
-                        snowflake.remove();
-                    });
-                } else {
-                    snowflake.classList.add('snowflake');
-                    const symbols = ['❄', '❅', '❆', '•'];
-                    snowflake.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
-                    snowflake.style.opacity = Math.random() * 0.5 + 0.3;
-                    snowflake.style.fontSize = Math.random() * 15 + 10 + 'px';
-                }
-                snowflake.style.left = Math.random() * 100 + 'vw';
-                const duration = Math.random() * 5 + 10 + 's';
-                snowflake.style.animation = `fall ${duration} linear infinite`;
-                body.appendChild(snowflake);
-                setTimeout(() => { if(snowflake.parentNode) snowflake.remove(); }, parseInt(duration)*1000);
-            }
-            setInterval(createSnowflake, 200);
-        });
-
-// --- 1. КОНФИГУРАЦИЯ ---
+    // ПЛЕЙЛИСТ
     const playlist = [
         { title: "Feet & Latex", artist: "AQUAKEY", src: "track1.mp3" },
         { title: "Ток", artist: "Zhanulka", src: "track2.mp3" },
@@ -646,227 +382,472 @@
         { title: "get married", artist: "deathmarried", src: "track10.mp3" }
     ];
 
-    const STORAGE_KEY = {
-        INDEX: 'cosmic_track_index',
-        TIME: 'cosmic_track_time',
-        PLAYING: 'cosmic_is_playing',
-        VOLUME: 'cosmic_volume',
-        POS_X: 'cosmic_pos_x', // X координата
-        POS_Y: 'cosmic_pos_y'  // Y координата
-    };
-
-    // --- 2. DOM ЭЛЕМЕНТЫ ---
-    const widget = document.getElementById('draggableWidget');
-    const audio = document.getElementById('audioPlayer');
-    const playPauseBtn = document.getElementById('playPauseBtn');
-    const titleEl = document.getElementById('trackTitle');
-    const artistEl = document.getElementById('trackArtist');
-    const playerPanel = document.getElementById('playerPanel');
-    const progressBar = document.getElementById('progressBar');
-    const volumeSlider = document.getElementById('volumeSlider');
-    const playlistDrawer = document.getElementById('playlistDrawer');
-    
-    let currentTrackIndex = 0;
-    let isPlaying = false;
-    let isDraggingProgress = false;
-
-    // --- 3. ИНИЦИАЛИЗАЦИЯ ---
+    // ==========================================
+    // 3. ОСНОВНАЯ ЛОГИКА (ПЛЕЕР + ВИЗУАЛ + UI)
+    // ==========================================
     document.addEventListener("DOMContentLoaded", () => {
-        renderPlaylist();
-        restoreState();     // Аудио
-        restorePosition();  // Позиция виджета
+        // --- ЭЛЕМЕНТЫ ---
+        const welcomeOverlay = document.getElementById('welcomeOverlay');
+        const closeBtn = document.getElementById('closeWelcomeBtn');
+        
+        const widget = document.getElementById('draggableWidget');
+        const audio = document.getElementById('audioPlayer');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const titleEl = document.getElementById('trackTitle');
+        const artistEl = document.getElementById('trackArtist');
+        const playerPanel = document.getElementById('playerPanel');
+        const progressBar = document.getElementById('progressBar');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const playlistDrawer = document.getElementById('playlistDrawer');
 
-        // Слушатели Аудио
-        audio.addEventListener('ended', nextTrack);
+        // --- VISUALIZER ELEMENTS ---
+        const canvas = document.getElementById('audioCanvas');
+        const ctx = canvas ? canvas.getContext('2d') : null;
+        const visualizerContainer = document.querySelector('.visualizer-container');
+        const visualizerHint = document.getElementById('visualizerHint');
+
+        // ПЕРЕМЕННЫЕ СОСТОЯНИЯ
+        let currentTrackIndex = 0;
+        let isPlaying = false;
+        let isDraggingProgress = false;
+        
+        // VISUALIZER STATE
+        let audioContext, analyser, source;
+        let isAudioConnected = false;
+        let animationId;
+        let idleTime = 0;
+
+        // ============================
+        // ЛОГИКА WELCOME SCREEN
+        // ============================
+        function showWelcome() {
+            if (welcomeOverlay) {
+                welcomeOverlay.classList.add('is-visible');
+                welcomeOverlay.style.opacity = '1';
+                welcomeOverlay.style.pointerEvents = 'auto';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+
+        function hideWelcome() {
+            if (welcomeOverlay) {
+                welcomeOverlay.style.opacity = '0';
+                welcomeOverlay.style.pointerEvents = 'none';
+                document.body.style.overflow = 'auto';
+                localStorage.setItem(STORAGE_KEY.SEEN_INTRO, 'true');
+                setTimeout(() => welcomeOverlay.classList.remove('is-visible'), 800);
+            }
+        }
+
+        // Если пользователь новый - показываем приветствие
+        if (!localStorage.getItem(STORAGE_KEY.SEEN_INTRO)) {
+            setTimeout(showWelcome, 100);
+        }
+
+        // КЛИК ПО КНОПКЕ "ОТКРЫТЬ ПОДАРОК" (ГЛАВНЫЙ ТРИГГЕР)
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                hideWelcome();
+                // ВАЖНО: При клике мы пытаемся запустить аудио
+                // Если оно должно играть по состоянию, оно заиграет
+                if (localStorage.getItem(STORAGE_KEY.PLAYING) === 'true') {
+                    playAudio();
+                } else {
+                    // Инициализируем AudioContext даже если музыка на паузе
+                    if (!isAudioConnected) initAudioContext();
+                }
+            });
+        }
+
+        // ============================
+        // ЛОГИКА АУДИО ПЛЕЕРА
+        // ============================
+        function loadTrack(index) {
+            if (index < 0 || index >= playlist.length) index = 0;
+            const track = playlist[index];
+            titleEl.innerText = track.title;
+            artistEl.innerText = track.artist;
+            if (audio.getAttribute('src') !== track.src) audio.src = track.src;
+            updatePlaylistUI();
+        }
+
+        function playAudio(isAutoRestore = false) {
+            const playPromise = audio.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    // УСПЕШНЫЙ ЗАПУСК
+                    isPlaying = true;
+                    updateUI(true);
+                    localStorage.setItem(STORAGE_KEY.PLAYING, 'true');
+                    
+                    // Запускаем визуализатор
+                    startVisualizer();
+                })
+                .catch(error => {
+                    // ОШИБКА АВТОВОСПРОИЗВЕДЕНИЯ
+                    console.log("Autoplay blocked:", error);
+                    
+                    if (isAutoRestore) {
+                        // Если это авто-восстановление и нас заблокировали:
+                        // МЫ СНОВА ПОКАЗЫВАЕМ ПРИВЕТСТВИЕ, ЧТОБЫ ПОЛУЧИТЬ КЛИК
+                        showWelcome();
+                        // Меняем текст кнопки (опционально)
+                        if(closeBtn) closeBtn.innerText = "Включить магию ✨";
+                    } else {
+                        isPlaying = false;
+                        updateUI(false);
+                        localStorage.setItem(STORAGE_KEY.PLAYING, 'false');
+                    }
+                });
+            }
+        }
+
+        function pauseAudio() {
+            audio.pause();
+            isPlaying = false;
+            updateUI(false);
+            localStorage.setItem(STORAGE_KEY.PLAYING, 'false');
+            stopVisualizer();
+            saveState();
+        }
+
+        window.togglePlay = function() { isPlaying ? pauseAudio() : playAudio(); }
+        window.nextTrack = function() {
+            currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+            loadTrack(currentTrackIndex); audio.currentTime = 0; playAudio();
+        }
+        window.prevTrack = function() {
+            currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+            loadTrack(currentTrackIndex); audio.currentTime = 0; playAudio();
+        }
+
+        function updateUI(playing) {
+            playPauseBtn.innerHTML = playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
+            playing ? playerPanel.classList.add('playing') : playerPanel.classList.remove('playing');
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY.INDEX, currentTrackIndex);
+            localStorage.setItem(STORAGE_KEY.TIME, audio.currentTime);
+        }
+
+        function restoreState() {
+            const savedIndex = localStorage.getItem(STORAGE_KEY.INDEX);
+            const savedTime = localStorage.getItem(STORAGE_KEY.TIME);
+            const savedVolume = localStorage.getItem(STORAGE_KEY.VOLUME);
+            const wasPlaying = localStorage.getItem(STORAGE_KEY.PLAYING) === 'true';
+
+            if (savedIndex !== null) currentTrackIndex = parseInt(savedIndex);
+            loadTrack(currentTrackIndex);
+
+            if (savedVolume !== null) {
+                audio.volume = parseFloat(savedVolume);
+                volumeSlider.value = audio.volume;
+                updateVolIcon(audio.volume);
+            }
+
+            if (savedTime !== null) audio.currentTime = parseFloat(savedTime);
+            
+            // Если музыка играла, пытаемся восстановить (с флагом isAutoRestore)
+            if (wasPlaying) playAudio(true);
+        }
+
+        // ============================
+        // ЛОГИКА ВИЗУАЛИЗАТОРА
+        // ============================
+        function resizeCanvas() {
+            if(!canvas || !visualizerContainer) return;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = visualizerContainer.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.logicalWidth = rect.width;
+            canvas.logicalHeight = rect.height;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function initAudioContext() {
+            if (isAudioConnected) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioContext = new AudioContext();
+            analyser = audioContext.createAnalyser();
+            analyser.smoothingTimeConstant = 0.65; 
+            analyser.fftSize = 2048; 
+            source = audioContext.createMediaElementSource(audio);
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+            isAudioConnected = true;
+        }
+
+        function drawIdle() {
+            if(!ctx) return;
+            const w = canvas.logicalWidth;
+            const h = canvas.logicalHeight;
+            const cy = h / 2;
+            ctx.clearRect(0, 0, w, h);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(253, 224, 71, 0.5)';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = 'rgba(253, 224, 71, 0.3)';
+            ctx.beginPath();
+            for (let x = 0; x <= w; x += 2) { 
+                const k = x / w; 
+                const wave1 = Math.sin(x * 0.01 + idleTime) * 15;
+                const wave2 = Math.sin(x * 0.02 - idleTime * 0.5) * 8;
+                const wave3 = Math.sin(x * 0.005 + idleTime * 0.2) * 20;
+                const damp = Math.sin(k * Math.PI); 
+                const y = cy + (wave1 + wave2 + wave3) * damp * 0.5;
+                if (x === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+            idleTime += 0.03;
+            animationId = requestAnimationFrame(drawIdle);
+        }
+
+        function drawVisualizer() {
+            if (!analyser || !ctx) return;
+            const w = canvas.logicalWidth;
+            const h = canvas.logicalHeight;
+            const cy = h / 2;
+            const cx = w / 2;
+            
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+
+            ctx.clearRect(0, 0, w, h);
+            const sliceCount = Math.floor(bufferLength * 0.35); 
+
+            const strokeGradient = ctx.createLinearGradient(0, 0, w, 0);
+            strokeGradient.addColorStop(0, 'rgba(253, 224, 71, 0.5)');
+            strokeGradient.addColorStop(0.5, '#ffffff'); 
+            strokeGradient.addColorStop(1, 'rgba(253, 224, 71, 0.5)');
+
+            ctx.fillStyle = 'rgba(253, 224, 71, 0.6)'; 
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = strokeGradient;
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#fde047';
+
+            ctx.beginPath();
+            // ВЕРХ ЛЕВО
+            for (let i = sliceCount - 1; i >= 0; i--) {
+                const val = dataArray[i] / 255.0;
+                const x = cx - ((i / sliceCount) * cx);
+                const y = cy - (val * (h / 2.0));
+                if (i === sliceCount - 1) ctx.moveTo(x, cy); else ctx.lineTo(x, y);
+            }
+            // ВЕРХ ПРАВО
+            for (let i = 0; i < sliceCount; i++) {
+                const val = dataArray[i] / 255.0;
+                const x = cx + ((i / sliceCount) * cx);
+                const y = cy - (val * (h / 2.0));
+                ctx.lineTo(x, y);
+            }
+            // НИЗ ПРАВО
+            for (let i = sliceCount - 1; i >= 0; i--) {
+                const val = dataArray[i] / 255.0;
+                const x = cx + ((i / sliceCount) * cx);
+                const y = cy + (val * (h / 2.0));
+                ctx.lineTo(x, y);
+            }
+            // НИЗ ЛЕВО
+            for (let i = 0; i < sliceCount; i++) {
+                const val = dataArray[i] / 255.0;
+                const x = cx - ((i / sliceCount) * cx);
+                const y = cy + (val * (h / 2.0));
+                ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.fill();   
+            ctx.stroke();
+            animationId = requestAnimationFrame(drawVisualizer);
+        }
+
+        function startVisualizer() {
+            if (!isAudioConnected) initAudioContext();
+            if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+            cancelAnimationFrame(animationId);
+            if(visualizerContainer) visualizerContainer.classList.add('active');
+            if(visualizerHint) visualizerHint.style.opacity = '0';
+            drawVisualizer();
+        }
+
+        function stopVisualizer() {
+            cancelAnimationFrame(animationId);
+            if(visualizerContainer) visualizerContainer.classList.remove('active');
+            if(visualizerHint) visualizerHint.style.opacity = '0.6';
+            drawIdle();
+        }
+
+        audio.addEventListener('play', startVisualizer);
+        audio.addEventListener('pause', stopVisualizer);
+        audio.addEventListener('ended', stopVisualizer);
+
+        // ============================
+        // ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ (ПЛЕЙЛИСТ, СНЕГ И Т.Д.)
+        // ============================
+        function updateVolIcon(vol) {
+            const icon = document.getElementById('volIcon');
+            icon.className = 'fa-solid vol-icon';
+            if(vol > 0.5) icon.classList.add('fa-volume-high');
+            else if(vol > 0) icon.classList.add('fa-volume-low');
+            else icon.classList.add('fa-volume-xmark');
+        }
+
+        function renderPlaylist() {
+            playlistDrawer.innerHTML = '';
+            playlist.forEach((track, index) => {
+                const item = document.createElement('div');
+                item.classList.add('playlist-item');
+                item.innerHTML = `<span>${track.title}</span>`;
+                item.onclick = () => { currentTrackIndex = index; loadTrack(index); playAudio(); };
+                playlistDrawer.appendChild(item);
+            });
+            updatePlaylistUI();
+        }
+
+        function updatePlaylistUI() {
+            document.querySelectorAll('.playlist-item').forEach((item, i) => {
+                i === currentTrackIndex ? item.classList.add('active') : item.classList.remove('active');
+            });
+        }
+
+        window.togglePlaylist = function() { playlistDrawer.classList.toggle('open'); }
+
+        // ЭФФЕКТЫ (СНЕГ И ВЗРЫВЫ)
+        const body = document.body;
+        const secretMessages = ["С Новым Годом! ✨", "Вы лучшие! ❤️", "Ура! Поймал!", "Счастья! 🎄", "Обнимаю! 🤗", "Магия! ✨"];
+
+        function createFloatingText(x, y) {
+            const textEl = document.createElement('div');
+            textEl.innerText = secretMessages[Math.floor(Math.random() * secretMessages.length)];
+            Object.assign(textEl.style, {
+                position: 'fixed', left: x + 'px', top: y + 'px', zIndex: '9999',
+                color: '#fff', pointerEvents: 'none', fontWeight: 'bold', textShadow: '0 0 5px #000',
+                fontFamily: "'Pacifico', cursive", fontSize: '1.5rem',
+                transition: 'opacity 1s, transform 1s', transform: 'translate(-50%, -50%)'
+            });
+            body.appendChild(textEl);
+            requestAnimationFrame(() => {
+                textEl.style.opacity = '0';
+                textEl.style.transform = 'translate(-50%, -100px)';
+            });
+            setTimeout(() => textEl.remove(), 1000);
+        }
+
+        function createExplosion(x, y) {
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                Object.assign(p.style, {
+                    position: 'fixed', left: x + 'px', top: y + 'px', width: '6px', height: '6px',
+                    backgroundColor: i % 2 === 0 ? '#FFD700' : '#ffffff', 
+                    borderRadius: '50%', zIndex: '9999', pointerEvents: 'none',
+                    boxShadow: '0 0 10px rgba(255, 215, 0, 0.8)'
+                });
+                body.appendChild(p);
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.random() * 150 + 50;
+                const dx = Math.cos(angle) * dist;
+                const dy = Math.sin(angle) * dist;
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${dx}px, ${dy}px) scale(0)`, opacity: 0 }
+                ], { duration: 1000, easing: 'cubic-bezier(0, .9, .57, 1)' });
+                setTimeout(()=>p.remove(), 1000);
+            }
+        }
+
+        function createSnowflake() {
+            const isSpecial = Math.random() < 0.05;
+            if (isSpecial) {
+                const wrapper = document.createElement('div');
+                const duration = Math.random() * 5 + 10 + 's';
+                Object.assign(wrapper.style, {
+                    position: 'fixed', left: Math.random() * 95 + 'vw', top: '-50px',
+                    zIndex: '9001', animation: `fallLinear ${duration} linear infinite`
+                });
+                const inner = document.createElement('div');
+                inner.innerHTML = '★';
+                Object.assign(inner.style, {
+                    fontSize: '40px', color: '#FFD700', cursor: 'pointer',
+                    textShadow: '0 0 5px rgba(255, 215, 0, 0.7)', animation: 'spin 4s linear infinite',
+                    userSelect: 'none', transition: 'font-size 0.2s ease, text-shadow 0.2s ease'
+                });
+                inner.onmouseenter = () => { inner.style.fontSize = '60px'; inner.style.textShadow = '0 0 20px #FFD700'; };
+                inner.onmouseleave = () => { inner.style.fontSize = '40px'; inner.style.textShadow = '0 0 5px rgba(255, 215, 0, 0.7)'; };
+                inner.onclick = () => {
+                    const rect = inner.getBoundingClientRect();
+                    createExplosion(rect.left + rect.width/2, rect.top + rect.height/2);
+                    createFloatingText(rect.left, rect.top);
+                    wrapper.remove();
+                };
+                wrapper.appendChild(inner);
+                body.appendChild(wrapper);
+                setTimeout(() => { if(wrapper.parentNode) wrapper.remove(); }, parseInt(duration) * 1000);
+            } else {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                const symbols = ['❄', '❅', '❆', '•'];
+                snowflake.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+                Object.assign(snowflake.style, {
+                    position: 'fixed', left: Math.random() * 100 + 'vw', top: '-20px',
+                    zIndex: '8999', opacity: Math.random() * 0.5 + 0.3,
+                    fontSize: Math.random() * 15 + 10 + 'px',
+                    animation: `fallSwing ${Math.random() * 5 + 10 + 's'} linear infinite`
+                });
+                body.appendChild(snowflake);
+                setTimeout(() => { if(snowflake.parentNode) snowflake.remove(); }, 15000);
+            }
+        }
+        setInterval(createSnowflake, 200);
+
+        // DRAG & DROP
+        let isDragging = false, startX, startY, initialLeft, initialTop;
+        if(widget) {
+            widget.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.playlist-item')) return;
+                isDragging = true; startX = e.clientX; startY = e.clientY;
+                const rect = widget.getBoundingClientRect(); initialLeft = rect.left; initialTop = rect.top;
+                widget.style.right = 'auto'; widget.style.bottom = 'auto'; widget.style.left = initialLeft + 'px'; widget.style.top = initialTop + 'px';
+                document.body.style.cursor = 'grabbing';
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                widget.style.left = `${initialLeft + (e.clientX - startX)}px`;
+                widget.style.top = `${initialTop + (e.clientY - startY)}px`;
+            });
+            document.addEventListener('mouseup', () => {
+                if (!isDragging) return;
+                isDragging = false; document.body.style.cursor = 'default';
+                const rect = widget.getBoundingClientRect();
+                localStorage.setItem(STORAGE_KEY.POS_X, rect.left); localStorage.setItem(STORAGE_KEY.POS_Y, rect.top);
+            });
+        }
+        const savedX = localStorage.getItem(STORAGE_KEY.POS_X), savedY = localStorage.getItem(STORAGE_KEY.POS_Y);
+        if (savedX && savedY && widget) { widget.style.left = savedX + 'px'; widget.style.top = savedY + 'px'; widget.style.right = 'auto'; }
+
+        // ИНИЦИАЛИЗАЦИЯ
+        renderPlaylist();
+        restoreState(); // Запускает плеер (и может вызвать Welcome Screen при ошибке)
+        drawIdle();     // Запускает волну
+
+        audio.addEventListener('ended', window.nextTrack);
         audio.addEventListener('timeupdate', () => {
             if (!isDraggingProgress && audio.duration) {
-                const progressPercent = (audio.currentTime / audio.duration) * 100;
-                progressBar.value = progressPercent;
+                progressBar.value = (audio.currentTime / audio.duration) * 100;
                 if(Math.floor(audio.currentTime) % 2 === 0) saveState();
             }
         });
-
-        // Слушатели UI
         progressBar.addEventListener('input', () => { isDraggingProgress = true; });
-        progressBar.addEventListener('change', (e) => {
-            isDraggingProgress = false;
-            if (audio.duration) {
-                audio.currentTime = (audio.duration / 100) * e.target.value;
-                saveState();
-            }
-        });
-        volumeSlider.addEventListener('input', (e) => {
-            audio.volume = e.target.value;
-            updateVolIcon(audio.volume);
-            localStorage.setItem(STORAGE_KEY.VOLUME, audio.volume);
-        });
-
-        // Инициализация Drag & Drop
-        initDragAndDrop();
+        progressBar.addEventListener('change', (e) => { isDraggingProgress = false; if(audio.duration) { audio.currentTime = (audio.duration / 100) * e.target.value; saveState(); } });
+        volumeSlider.addEventListener('input', (e) => { audio.volume = e.target.value; updateVolIcon(audio.volume); localStorage.setItem(STORAGE_KEY.VOLUME, audio.volume); });
     });
-
-    // --- 4. DRAG & DROP LOGIC (НОВОЕ) ---
-    function initDragAndDrop() {
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
-
-        widget.addEventListener('mousedown', (e) => {
-            // Запрещаем перетаскивание, если клик был по кнопке или ползунку
-            if (e.target.closest('button') || e.target.closest('input') || e.target.closest('.playlist-item')) {
-                return;
-            }
-
-            isDragging = true;
-            startX = e.clientX;
-            startY = e.clientY;
-            
-            // Получаем текущие координаты (вычисляемые)
-            const rect = widget.getBoundingClientRect();
-            initialLeft = rect.left;
-            initialTop = rect.top;
-
-            // Важно: отключаем right/bottom, переходим на left/top для управления
-            widget.style.right = 'auto';
-            widget.style.bottom = 'auto';
-            widget.style.left = initialLeft + 'px';
-            widget.style.top = initialTop + 'px';
-            
-            document.body.style.cursor = 'grabbing';
-        });
-
-        document.addEventListener('mousemove', (e) => {
-            if (!isDragging) return;
-            e.preventDefault();
-
-            const dx = e.clientX - startX;
-            const dy = e.clientY - startY;
-
-            widget.style.left = `${initialLeft + dx}px`;
-            widget.style.top = `${initialTop + dy}px`;
-        });
-
-        document.addEventListener('mouseup', () => {
-            if (!isDragging) return;
-            isDragging = false;
-            document.body.style.cursor = 'default';
-            
-            // Сохраняем позицию
-            const rect = widget.getBoundingClientRect();
-            localStorage.setItem(STORAGE_KEY.POS_X, rect.left);
-            localStorage.setItem(STORAGE_KEY.POS_Y, rect.top);
-        });
-    }
-
-    function restorePosition() {
-        const savedX = localStorage.getItem(STORAGE_KEY.POS_X);
-        const savedY = localStorage.getItem(STORAGE_KEY.POS_Y);
-
-        if (savedX && savedY) {
-            widget.style.left = savedX + 'px';
-            widget.style.top = savedY + 'px';
-            widget.style.right = 'auto'; // Сбрасываем дефолт
-        }
-    }
-
-    // --- 5. АУДИО ЛОГИКА (БЕЗ ИЗМЕНЕНИЙ) ---
-    function restoreState() {
-        const savedIndex = localStorage.getItem(STORAGE_KEY.INDEX);
-        const savedTime = localStorage.getItem(STORAGE_KEY.TIME);
-        const savedVolume = localStorage.getItem(STORAGE_KEY.VOLUME);
-        const wasPlaying = localStorage.getItem(STORAGE_KEY.PLAYING) === 'true';
-
-        if (savedIndex !== null) currentTrackIndex = parseInt(savedIndex);
-        loadTrack(currentTrackIndex);
-
-        if (savedVolume !== null) {
-            audio.volume = parseFloat(savedVolume);
-            volumeSlider.value = audio.volume;
-            updateVolIcon(audio.volume);
-        }
-
-        if (savedTime !== null) audio.currentTime = parseFloat(savedTime);
-        if (wasPlaying) playAudio(true);
-    }
-
-    function saveState() {
-        localStorage.setItem(STORAGE_KEY.INDEX, currentTrackIndex);
-        localStorage.setItem(STORAGE_KEY.TIME, audio.currentTime);
-    }
-
-    function loadTrack(index) {
-        if (index < 0 || index >= playlist.length) index = 0;
-        const track = playlist[index];
-        titleEl.innerText = track.title;
-        artistEl.innerText = track.artist;
-        const currentSrc = audio.getAttribute('src');
-        if (currentSrc !== track.src) audio.src = track.src;
-        updatePlaylistUI();
-    }
-
-    function playAudio(isAutoRestore = false) {
-        audio.play().then(() => {
-            isPlaying = true; updateUI(true);
-            localStorage.setItem(STORAGE_KEY.PLAYING, 'true');
-        }).catch(error => {
-            if(isAutoRestore) {
-                isPlaying = false; updateUI(false);
-                localStorage.setItem(STORAGE_KEY.PLAYING, 'false');
-            }
-        });
-    }
-
-    function pauseAudio() {
-        audio.pause();
-        isPlaying = false; updateUI(false);
-        localStorage.setItem(STORAGE_KEY.PLAYING, 'false');
-        saveState();
-    }
-
-    function togglePlay() { isPlaying ? pauseAudio() : playAudio(); }
-    function nextTrack() {
-        currentTrackIndex++;
-        if (currentTrackIndex >= playlist.length) currentTrackIndex = 0;
-        loadTrack(currentTrackIndex); audio.currentTime = 0; playAudio();
-    }
-    function prevTrack() {
-        currentTrackIndex--;
-        if (currentTrackIndex < 0) currentTrackIndex = playlist.length - 1;
-        loadTrack(currentTrackIndex); audio.currentTime = 0; playAudio();
-    }
-
-    function updateUI(playing) {
-        playPauseBtn.innerHTML = playing ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>';
-        playing ? playerPanel.classList.add('playing') : playerPanel.classList.remove('playing');
-    }
-
-    function updateVolIcon(vol) {
-        const icon = document.getElementById('volIcon');
-        icon.className = 'fa-solid vol-icon';
-        if(vol > 0.5) icon.classList.add('fa-volume-high');
-        else if(vol > 0) icon.classList.add('fa-volume-low');
-        else icon.classList.add('fa-volume-xmark');
-    }
-
-    function renderPlaylist() {
-        playlistDrawer.innerHTML = '';
-        playlist.forEach((track, index) => {
-            const item = document.createElement('div');
-            item.classList.add('playlist-item');
-            item.innerHTML = `<span>${track.title}</span>`;
-            item.onclick = () => { currentTrackIndex = index; loadTrack(index); playAudio(); };
-            playlistDrawer.appendChild(item);
-        });
-        updatePlaylistUI();
-    }
-
-    function updatePlaylistUI() {
-        document.querySelectorAll('.playlist-item').forEach((item, i) => {
-            i === currentTrackIndex ? item.classList.add('active') : item.classList.remove('active');
-        });
-    }
-
-    function togglePlaylist() { playlistDrawer.classList.toggle('open'); }
-
-    </script>
+</script>
 </body>
-</html>
+</html> 
